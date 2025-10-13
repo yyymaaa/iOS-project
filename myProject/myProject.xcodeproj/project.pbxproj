@@ -30,7 +30,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		DF6EC0EE2E95469300137C74 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = myProject.xcodeproj; path = myProject/myProject.xcodeproj; sourceTree = SOURCE_ROOT; };
 		DF9369512E95354C00005F04 /* myProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF9369612E95354D00005F04 /* myProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = myProjectTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF93696B2E95354D00005F04 /* myProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = myProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -82,13 +81,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		DF6EC0F12E95469300137C74 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		DF9369482E95354C00005F04 = {
 			isa = PBXGroup;
 			children = (
@@ -221,12 +213,6 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DF9369522E95354C00005F04 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = DF6EC0F12E95469300137C74 /* Products */;
-					ProjectRef = DF6EC0EE2E95469300137C74 /* myProject.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				DF9369502E95354C00005F04 /* myProject */,
