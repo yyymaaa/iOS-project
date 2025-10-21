@@ -31,9 +31,11 @@
 
 /* Begin PBXFileReference section */
 		DF6EC0EE2E95469300137C74 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = myProject.xcodeproj; path = myProject/myProject.xcodeproj; sourceTree = SOURCE_ROOT; };
+		DF9224A42E9E7A0300750433 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DF9369512E95354C00005F04 /* myProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF9369612E95354D00005F04 /* myProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = myProjectTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF93696B2E95354D00005F04 /* myProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = myProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DFE9D79A2E9D3595006410A8 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -89,6 +91,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		DF9224A72E9E7A0300750433 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		DF9369482E95354C00005F04 = {
 			isa = PBXGroup;
 			children = (
@@ -105,6 +114,13 @@
 				DF9369512E95354C00005F04 /* myProject.app */,
 				DF9369612E95354D00005F04 /* myProjectTests.xctest */,
 				DF93696B2E95354D00005F04 /* myProjectUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DFE9D79D2E9D3595006410A8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -222,6 +238,14 @@
 			productRefGroup = DF9369522E95354C00005F04 /* Products */;
 			projectDirPath = "";
 			projectReferences = (
+				{
+					ProductGroup = DFE9D79D2E9D3595006410A8 /* Products */;
+					ProjectRef = DFE9D79A2E9D3595006410A8 /* myProject.xcodeproj */;
+				},
+				{
+					ProductGroup = DF9224A72E9E7A0300750433 /* Products */;
+					ProjectRef = DF9224A42E9E7A0300750433 /* myProject.xcodeproj */;
+				},
 				{
 					ProductGroup = DF6EC0F12E95469300137C74 /* Products */;
 					ProjectRef = DF6EC0EE2E95469300137C74 /* myProject.xcodeproj */;

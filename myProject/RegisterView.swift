@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 struct RegisterView: View {
     @State private var fullName = ""
     @State private var email = ""
@@ -8,6 +9,7 @@ struct RegisterView: View {
     
     @State private var passwordError = ""
     @State private var showPasswordError = false
+    @EnvironmentObject var AuthViewModel: AuthViewModel
     
     var body: some View {
         NavigationView {
@@ -41,14 +43,20 @@ struct RegisterView: View {
 
                 Button(action: {
                     if validatePasswords() {
-                        // You’ll add logic later
-                        print("Passwords are valid. Proceed to register.")
+                        AuthViewModel.registerUser(fullName: fullName, email: email, password: password) { error in
+                            if let error = error {
+                                print("Registration failed: \(error.localizedDescription)")
+                            } else {
+                                print("User registered successfully")
+                            }
+                        }
                     }
+                    
                 }) {
                     Text("Register")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
+                        .background(Color.green)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }

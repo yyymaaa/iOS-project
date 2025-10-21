@@ -1,9 +1,11 @@
 import SwiftUI
 
+
 struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isShowingRegister = false
+    @EnvironmentObject var AuthViewModel: AuthViewModel
 
     var body: some View {
         NavigationView {
@@ -22,8 +24,13 @@ struct LoginView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
 
                 Button(action: {
-                    // Handle login logic later
-                    print("Login tapped")
+                    AuthViewModel.login(email:email, password: password) { error in
+                        if let error = error {
+                            print("Login failed: \(error.localizedDescription)")
+                        } else {
+                            print("Login Successful")
+                        }
+                    }
                 }) {
                     Text("Login")
                         .frame(maxWidth: .infinity)
