@@ -13,12 +13,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct myProjectApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject var authViewModel = AuthViewModel()
+    @StateObject var cartManager = CartManager()
 
     var body: some Scene {
         WindowGroup {
             if authViewModel.isAuthenticated {
                 HomeView()
                     .environmentObject(authViewModel)
+                    .environmentObject(cartManager)
             } else {
                 LoginView()
                     .environmentObject(authViewModel)  

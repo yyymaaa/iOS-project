@@ -10,6 +10,7 @@
 		DF93698E2E953A0600005F04 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = DF93698D2E953A0600005F04 /* FirebaseAnalytics */; };
 		DF9369902E953A9400005F04 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DF93698F2E953A9400005F04 /* FirebaseFirestore */; };
 		DF9369922E953B0700005F04 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DF9369912E953B0700005F04 /* FirebaseAuth */; };
+		DFC3E11B2EA7A4810064B5C9 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DFC3E11A2EA7A4810064B5C9 /* FirebaseCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,9 +33,13 @@
 /* Begin PBXFileReference section */
 		DF6EC0EE2E95469300137C74 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = myProject.xcodeproj; path = myProject/myProject.xcodeproj; sourceTree = SOURCE_ROOT; };
 		DF9224A42E9E7A0300750433 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
+		DF9305082EA912BF00A76DDA /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DF9369512E95354C00005F04 /* myProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF9369612E95354D00005F04 /* myProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = myProjectTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF93696B2E95354D00005F04 /* myProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = myProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DFAE624C2EA7B21500EF4181 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
+		DFAE628C2EA7B7B300EF4181 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
+		DFC3E0EC2EA790CF0064B5C9 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DFE9D79A2E9D3595006410A8 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -63,6 +68,7 @@
 			files = (
 				DF93698E2E953A0600005F04 /* FirebaseAnalytics in Frameworks */,
 				DF9369922E953B0700005F04 /* FirebaseAuth in Frameworks */,
+				DFC3E11B2EA7A4810064B5C9 /* FirebaseCore in Frameworks */,
 				DF9369902E953A9400005F04 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -98,6 +104,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		DF93050D2EA912BF00A76DDA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		DF9369482E95354C00005F04 = {
 			isa = PBXGroup;
 			children = (
@@ -114,6 +127,27 @@
 				DF9369512E95354C00005F04 /* myProject.app */,
 				DF9369612E95354D00005F04 /* myProjectTests.xctest */,
 				DF93696B2E95354D00005F04 /* myProjectUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DFAE62512EA7B21500EF4181 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DFAE62912EA7B7B300EF4181 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DFC3E0EF2EA790CF0064B5C9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -148,6 +182,7 @@
 				DF93698D2E953A0600005F04 /* FirebaseAnalytics */,
 				DF93698F2E953A9400005F04 /* FirebaseFirestore */,
 				DF9369912E953B0700005F04 /* FirebaseAuth */,
+				DFC3E11A2EA7A4810064B5C9 /* FirebaseCore */,
 			);
 			productName = myProject;
 			productReference = DF9369512E95354C00005F04 /* myProject.app */;
@@ -238,6 +273,22 @@
 			productRefGroup = DF9369522E95354C00005F04 /* Products */;
 			projectDirPath = "";
 			projectReferences = (
+				{
+					ProductGroup = DFAE62512EA7B21500EF4181 /* Products */;
+					ProjectRef = DFAE624C2EA7B21500EF4181 /* myProject.xcodeproj */;
+				},
+				{
+					ProductGroup = DFAE62912EA7B7B300EF4181 /* Products */;
+					ProjectRef = DFAE628C2EA7B7B300EF4181 /* myProject.xcodeproj */;
+				},
+				{
+					ProductGroup = DFC3E0EF2EA790CF0064B5C9 /* Products */;
+					ProjectRef = DFC3E0EC2EA790CF0064B5C9 /* myProject.xcodeproj */;
+				},
+				{
+					ProductGroup = DF93050D2EA912BF00A76DDA /* Products */;
+					ProjectRef = DF9305082EA912BF00A76DDA /* myProject.xcodeproj */;
+				},
 				{
 					ProductGroup = DFE9D79D2E9D3595006410A8 /* Products */;
 					ProjectRef = DFE9D79A2E9D3595006410A8 /* myProject.xcodeproj */;
@@ -638,6 +689,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DF93698C2E953A0600005F04 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
+		};
+		DFC3E11A2EA7A4810064B5C9 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DF93698C2E953A0600005F04 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
