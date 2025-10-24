@@ -2,6 +2,7 @@ import Foundation
 
 class CartManager: ObservableObject {
     @Published var cartItems: [CartItem] = []
+    @Published var confirmationMessage: String? = nil
 
     func addToCart(_ meal: Meal, quantity: Int) {
         if let index = cartItems.firstIndex(where: { $0.meal.id == meal.id }) {
@@ -9,6 +10,28 @@ class CartManager: ObservableObject {
         } else {
             let newItem = CartItem(meal: meal, quantity: quantity)
             cartItems.append(newItem)
+        }
+
+        // Show confirmation
+        confirmationMessage = "\(meal.name) added to cart!"
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            self.confirmationMessage = nil
+        }
+    }
+
+    func increaseQuantity(for meal: Meal) {
+        if let index = cartItems.firstIndex(where: { $0.meal.id == meal.id }) {
+            cartItems[index].quantity += 1
+        }
+    }
+
+    func decreaseQuantity(for meal: Meal) {
+        if let index = cartItems.firstIndex(where: { $0.meal.id == meal.id }) {
+            if cartItems[index].quantity > 1 {
+                cartItems[index].quantity -= 1
+            } else {
+                removeFromCart(meal)
+            }
         }
     }
 

@@ -12,7 +12,6 @@ class AuthViewModel: ObservableObject {
         self.isAuthenticated = userSession != nil
     }
 
-   
     func registerUser(fullName: String, email: String, password: String, completion: @escaping (Error?) -> Void) {
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
             if let error = error {
@@ -25,12 +24,16 @@ class AuthViewModel: ObservableObject {
                 return
             }
             
+            // Default profile image for all clients
+            let defaultClientImageUrl = "https://i.postimg.cc/yNvzV7DX/temp-Image-AHGp-Cz.avif"
+            
             // Save user info in Firestore
             let data: [String: Any] = [
                 "fullName": fullName,
                 "email": email,
                 "createdAt": Timestamp(),
-                "role": "client"
+                "role": "client",
+                "imageUrl": defaultClientImageUrl
             ]
             
             self.db.collection("users").document(user.uid).setData(data) { error in

@@ -18,21 +18,54 @@ struct CartView: View {
                 List {
                     ForEach(cartManager.cartItems) { item in
                         HStack {
-                            Text(item.meal.name)
+                            VStack(alignment: .leading) {
+                                Text(item.meal.name)
+                                    .font(.headline)
+                                Text("Ksh \(Int(item.meal.discountPrice)) each")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+
                             Spacer()
-                            Text("x\(item.quantity)")
+
+                            // Quantity controls
+                            HStack(spacing: 15) {
+                                Button(action: {
+                                    cartManager.decreaseQuantity(for: item.meal)
+                                }) {
+                                    Image(systemName: "minus.circle.fill")
+                                        .foregroundColor(.green)
+                                }
+
+                                Text("\(item.quantity)")
+                                    .font(.headline)
+                                    .frame(width: 25)
+
+                                Button(action: {
+                                    cartManager.increaseQuantity(for: item.meal)
+                                }) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .foregroundColor(.green)
+                                }
+                            }
+
+                            // Delete icon
+                            Button(action: {
+                                cartManager.removeFromCart(item.meal)
+                            }) {
+                                Image(systemName: "trash.fill")
+                                    .foregroundColor(.green)
+                            }
+
+                            // Item total
                             Text("Ksh \(Int(item.meal.discountPrice * Double(item.quantity)))")
+                                .font(.headline)
                                 .foregroundColor(.green)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        indexSet.forEach { index in
-                            let item = cartManager.cartItems[index]
-                            cartManager.removeFromCart(item.meal)
                         }
                     }
                 }
 
+                // Total section
                 HStack {
                     Text("Total:")
                         .font(.headline)
@@ -43,14 +76,14 @@ struct CartView: View {
                 }
                 .padding()
 
+                // Checkout button
                 Button(action: {
-                    // Proceed to checkout screen (later)
                     print("Proceeding to payment...")
                 }) {
                     Text("Proceed to Checkout")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
+                        .background(Color.green)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }

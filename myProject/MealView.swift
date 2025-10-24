@@ -8,16 +8,25 @@ struct MealView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(spacing: 24) {
                 
-                // Title
-                Text("\(restaurant.name) Menu")
-                    .font(.largeTitle)
-                    .bold()
-                    .padding(.horizontal)
+                // --- Centered Restaurant Title ---
+                VStack(spacing: 6) {
+                    Text(restaurant.name)
+                        .font(.largeTitle.bold())
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                    
+                    Rectangle()
+                        .fill(Color.green)
+                        .frame(width: 80, height: 3)
+                        .cornerRadius(2)
+                }
+                .padding(.top, 10)
 
+                // --- Meals Section ---
                 if mealVM.meals.isEmpty {
-                    VStack {
+                    VStack(spacing: 12) {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle())
                         Text("Loading meals...")
@@ -27,18 +36,20 @@ struct MealView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 40)
                 } else {
-                    ForEach(mealVM.meals) { meal in
-                        MealRow(meal: meal)
-                            .environmentObject(cartManager)
+                    LazyVStack(spacing: 0) {
+                        ForEach(mealVM.meals) { meal in
+                            MealRow(meal: meal)
+                                .environmentObject(cartManager)
+                        }
                     }
                 }
             }
             .padding(.bottom, 80)
         }
+        .background(Color(.systemGroupedBackground)) // soft gray background
         .onAppear {
             mealVM.fetchMeals(for: restaurant.id ?? "")
         }
-        .navigationTitle(restaurant.name)
         .navigationBarTitleDisplayMode(.inline)
     }
 }

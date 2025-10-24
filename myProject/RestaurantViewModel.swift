@@ -3,19 +3,27 @@ import FirebaseFirestore
 //import FirebaseFirestoreSwift
 
 class RestaurantViewModel: ObservableObject {
-    @Published var restaurants: [Restaurant] = []
+    @Published var restaurants = [Restaurant]()
     private var db = Firestore.firestore()
 
     func fetchRestaurants() {
-        db.collection("restaurants").addSnapshotListener { snapshot, error in
-            if let error = error {
-                print("Error fetching restaurants: \(error.localizedDescription)")
+        db.collection("restaurants").getDocuments { snapshot, error in
+            guard let documents = snapshot?.documents else {
+                print("No documents found in Firestore.")
                 return
             }
 
-            self.restaurants = snapshot?.documents.compactMap { doc in
-                try? doc.data(as: Restaurant.self)
-            } ?? []
+            self.restaurants = documents.map { doc in
+                let data = doc.data()
+                return Restaurant(
+                    id: doc.documentID,
+                    name: data["name"] as? String ?? "",
+                    location: data["location"] as? String ?? "",
+                    imageUrl: data["imageUrl"] as? String ?? "", 
+                    ownerID: data["ownerID"] as? String ?? ""
+                )
+            }
         }
     }
 }
+

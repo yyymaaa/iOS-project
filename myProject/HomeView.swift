@@ -3,23 +3,26 @@ import FirebaseFirestore
 
 struct HomeView: View {
     @StateObject private var restaurantVM = RestaurantViewModel()
+    @EnvironmentObject var cartManager: CartManager
     @State private var searchText = ""
     @State private var currentIndex = 0
     let carouselTimer = Timer.publish(every: 4, on: .main, in: .common).autoconnect()
-
+    
     var filteredRestaurants: [Restaurant] {
         if searchText.isEmpty {
             return restaurantVM.restaurants
         } else {
-            return restaurantVM.restaurants.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+            return restaurantVM.restaurants.filter {
+                $0.name.localizedCaseInsensitiveContains(searchText)
+            }
         }
     }
-
+    
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-
+                    
                     // Header
                     HStack {
                         Text("Where do you want to eat today?")
@@ -27,25 +30,28 @@ struct HomeView: View {
                             .foregroundColor(.primary)
                         Spacer()
                         
-                        Button(action: { print("Cart tapped") }) {
+                        // Cart Button
+                        NavigationLink(destination: CartView()) {
                             Image(systemName: "cart.fill")
                                 .font(.title2)
                                 .foregroundColor(.green)
                         }
                         
-                        Button(action: { print("Profile tapped") }) {
+                        // Profile Button (future use)
+                        NavigationLink(destination: ProfileView()) {
                             Image(systemName: "person.crop.circle")
                                 .font(.title2)
                                 .foregroundColor(.green)
                         }
+                        .accentColor(.green)
                     }
                     .padding(.horizontal)
                     .padding(.top, 10)
-
+                    
                     // Carousel
                     ZStack {
                         if !restaurantVM.restaurants.isEmpty {
-                            AsyncImage(url: URL(string: restaurantVM.restaurants[currentIndex].imageURL)) { image in
+                            AsyncImage(url: URL(string: restaurantVM.restaurants[currentIndex].imageUrl)) { image in
                                 image
                                     .resizable()
                                     .scaledToFill()
@@ -71,8 +77,8 @@ struct HomeView: View {
                         }
                     }
                     .padding(.horizontal)
-
-                    // Search bar
+                    
+                    // Search Bar
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
@@ -83,13 +89,14 @@ struct HomeView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
                     .padding(.horizontal)
-
+                    
+                    // Restaurant List
                     // Restaurant List
                     VStack(alignment: .leading, spacing: 16) {
                         ForEach(filteredRestaurants) { restaurant in
-                            NavigationLink(destination: MealView(restaurant: restaurant)) {
+                            NavigationLink(destination: MealView(restaurant: restaurant).environmentObject(cartManager)) {
                                 VStack(alignment: .leading) {
-                                    AsyncImage(url: URL(string: restaurant.imageURL)) { image in
+                                    AsyncImage(url: URL(string: restaurant.imageUrl)) { image in
                                         image.resizable()
                                             .scaledToFill()
                                     } placeholder: {
@@ -117,13 +124,14 @@ struct HomeView: View {
                             }
                         }
                     }
+
+                    .padding(.bottom, 30)
                 }
-                .padding(.bottom, 30)
+                .onAppear {
+                    restaurantVM.fetchRestaurants()
+                }
+                .navigationBarHidden(true)
             }
-            .onAppear {
-                restaurantVM.fetchRestaurants()
-            }
-            .navigationBarHidden(true)
         }
     }
 }
