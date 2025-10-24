@@ -94,7 +94,7 @@ struct MealRow: View {
             // Confirmation message
             Group {
                 if showConfirmation {
-                    Text("Added to cart ✅")
+                    Text("Added to cart")
                         .font(.caption)
                         .padding(8)
                         .background(Color.black.opacity(0.7))

@@ -10,7 +10,7 @@ struct MealView: View {
         ScrollView {
             VStack(spacing: 24) {
                 
-                // --- Centered Restaurant Title ---
+                // Centered Restaurant Title
                 VStack(spacing: 6) {
                     Text(restaurant.name)
                         .font(.largeTitle.bold())
@@ -24,7 +24,7 @@ struct MealView: View {
                 }
                 .padding(.top, 10)
 
-                // --- Meals Section ---
+                // Meals Section 
                 if mealVM.meals.isEmpty {
                     VStack(spacing: 12) {
                         ProgressView()
