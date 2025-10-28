@@ -8,10 +8,17 @@ struct CheckoutView: View {
     @State private var isProcessing = false
     @State private var paymentSuccess = false
     
-    var totalAmount: Double = 300.0
-    let cartItems = [
-        ("Gourmet Burger", 1, 300.0)
-    ]
+    @EnvironmentObject var cartManager: CartManager
+
+    private var totalAmount: Double {
+        cartManager.totalAmount()
+    }
+
+    private var cartItems: [(String, Int, Double)] {
+        cartManager.cartItems.map { item in
+            (item.meal.name, item.quantity, item.meal.discountPrice * Double(item.quantity))
+        }
+    }
     
     var body: some View {
         ZStack {
@@ -23,7 +30,7 @@ struct CheckoutView: View {
         }
     }
     
-    // MARK: - Background
+    // Background
     private var backgroundGradient: some View {
         LinearGradient(
             colors: [
@@ -38,7 +45,7 @@ struct CheckoutView: View {
         .ignoresSafeArea()
     }
     
-    // MARK: - Main Content
+    // Main Content
     private var mainContent: some View {
         ScrollView {
             VStack(spacing: 30) {
@@ -51,7 +58,7 @@ struct CheckoutView: View {
         }
     }
     
-    // MARK: - Header Section
+    // Header Section
     private var headerSection: some View {
         VStack(spacing: 12) {
             HStack {
@@ -128,7 +135,7 @@ struct CheckoutView: View {
             .padding(.horizontal, 40)
     }
     
-    // MARK: - Order Summary Card
+    // Order Summary Card
     private var orderSummaryCard: some View {
         VStack(spacing: 20) {
             orderHeader
@@ -279,7 +286,7 @@ struct CheckoutView: View {
         }
     }
     
-    // MARK: - Payment Section
+    // Payment Section
     private var paymentSection: some View {
         VStack(spacing: 20) {
             paymentHeader
@@ -370,7 +377,7 @@ struct CheckoutView: View {
         )
     }
     
-    // MARK: - Phone Input Section
+    //  Phone Input Section
     private var phoneInputSection: some View {
         VStack(spacing: 16) {
             phoneInputHeader
@@ -550,7 +557,7 @@ struct CheckoutView: View {
     private var confirmButtonGradient: some View {
         LinearGradient(
             colors: phoneNumber.count == 9 && !isProcessing ?
-                [Color.green, Color.green.opacity(0.8)] :
+            [Color.green, Color.green.opacity(0.8)] :
                 [Color.gray.opacity(0.6), Color.gray.opacity(0.4)],
             startPoint: .leading,
             endPoint: .trailing
@@ -577,7 +584,7 @@ struct CheckoutView: View {
         }
     }
     
-    // MARK: - Shared Components
+    // Shared Components
     private var cardBackground: some View {
         RoundedRectangle(cornerRadius: 20)
             .fill(Color.white)
@@ -596,22 +603,54 @@ struct CheckoutView: View {
         )
     }
     
-    // MARK: - Actions
+    // Actions
     private func handlePayment() {
-        withAnimation(.spring()) {
-            isProcessing = true
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            isProcessing = false
-            if phoneNumber.count == 9 {
-                alertMessage = "M-Pesa payment prompt sent to +254\(phoneNumber)\n\nPlease check your phone and enter your M-Pesa PIN to complete the payment."
-                paymentSuccess = true
-            } else {
-                alertMessage = "Please enter a valid 9-digit phone number."
-                paymentSuccess = false
-            }
+        let validPrefixes = ["7", "1"]
+        guard phoneNumber.count == 9, validPrefixes.contains(String(phoneNumber.prefix(1))) else {
+            alertMessage = "Please enter a valid M-Pesa number (07XXXXXXXX or 01XXXXXXXX)."
             showAlert = true
+            return
         }
+
+        
+        isProcessing = true
+        let url = URL(string: "http://localhost:3000/stkpush")!  // Use ngrok URL on device
+        let body: [String: Any] = [
+            "phoneNumber": phoneNumber,
+            "amount": totalAmount
+        ]
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                isProcessing = false
+                if let error = error {
+                    alertMessage = "Error: \(error.localizedDescription)"
+                    showAlert = true
+                    return
+                }
+                
+                guard let data = data,
+                      let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let success = response["success"] as? Bool else {
+                    alertMessage = "Invalid response."
+                    showAlert = true
+                    return
+                }
+                
+                if success {
+                    alertMessage = "Payment prompt sent to +254\(phoneNumber)"
+                    paymentSuccess = true
+                } else {
+                    alertMessage = "Failed to initiate payment."
+                    paymentSuccess = false
+                }
+                showAlert = true
+            }
+        }.resume()
     }
 }
