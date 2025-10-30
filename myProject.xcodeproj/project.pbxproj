@@ -31,12 +31,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		DF6EA4E22EB3632200C94A63 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DF6EC0EE2E95469300137C74 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = myProject.xcodeproj; path = myProject/myProject.xcodeproj; sourceTree = SOURCE_ROOT; };
 		DF9224A42E9E7A0300750433 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DF9305082EA912BF00A76DDA /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DF9369512E95354C00005F04 /* myProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF9369612E95354D00005F04 /* myProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = myProjectTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF93696B2E95354D00005F04 /* myProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = myProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DFA5356B2EB20561008156B5 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
+		DFA535BF2EB258ED008156B5 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DFAE624C2EA7B21500EF4181 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DFAE628C2EA7B7B300EF4181 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DFC3E0EC2EA790CF0064B5C9 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
@@ -91,6 +94,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DF6EA4F12EB3632200C94A63 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		DF6EC0F12E95469300137C74 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -128,6 +138,20 @@
 				DF9369512E95354C00005F04 /* myProject.app */,
 				DF9369612E95354D00005F04 /* myProjectTests.xctest */,
 				DF93696B2E95354D00005F04 /* myProjectUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DFA535712EB20561008156B5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DFA535C52EB258ED008156B5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -282,16 +306,12 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = DFAE62512EA7B21500EF4181 /* Products */;
-					ProjectRef = DFAE624C2EA7B21500EF4181 /* myProject.xcodeproj */;
-				},
-				{
 					ProductGroup = DFAE62912EA7B7B300EF4181 /* Products */;
 					ProjectRef = DFAE628C2EA7B7B300EF4181 /* myProject.xcodeproj */;
 				},
 				{
-					ProductGroup = DFC3E0EF2EA790CF0064B5C9 /* Products */;
-					ProjectRef = DFC3E0EC2EA790CF0064B5C9 /* myProject.xcodeproj */;
+					ProductGroup = DF6EA4F12EB3632200C94A63 /* Products */;
+					ProjectRef = DF6EA4E22EB3632200C94A63 /* myProject.xcodeproj */;
 				},
 				{
 					ProductGroup = DF93050D2EA912BF00A76DDA /* Products */;
@@ -302,16 +322,32 @@
 					ProjectRef = DFEF05C12EAB950500856C0D /* myProject.xcodeproj */;
 				},
 				{
-					ProductGroup = DFE9D79D2E9D3595006410A8 /* Products */;
-					ProjectRef = DFE9D79A2E9D3595006410A8 /* myProject.xcodeproj */;
-				},
-				{
 					ProductGroup = DF9224A72E9E7A0300750433 /* Products */;
 					ProjectRef = DF9224A42E9E7A0300750433 /* myProject.xcodeproj */;
 				},
 				{
 					ProductGroup = DF6EC0F12E95469300137C74 /* Products */;
 					ProjectRef = DF6EC0EE2E95469300137C74 /* myProject.xcodeproj */;
+				},
+				{
+					ProductGroup = DFAE62512EA7B21500EF4181 /* Products */;
+					ProjectRef = DFAE624C2EA7B21500EF4181 /* myProject.xcodeproj */;
+				},
+				{
+					ProductGroup = DFC3E0EF2EA790CF0064B5C9 /* Products */;
+					ProjectRef = DFC3E0EC2EA790CF0064B5C9 /* myProject.xcodeproj */;
+				},
+				{
+					ProductGroup = DFA535C52EB258ED008156B5 /* Products */;
+					ProjectRef = DFA535BF2EB258ED008156B5 /* myProject.xcodeproj */;
+				},
+				{
+					ProductGroup = DFE9D79D2E9D3595006410A8 /* Products */;
+					ProjectRef = DFE9D79A2E9D3595006410A8 /* myProject.xcodeproj */;
+				},
+				{
+					ProductGroup = DFA535712EB20561008156B5 /* Products */;
+					ProjectRef = DFA5356B2EB20561008156B5 /* myProject.xcodeproj */;
 				},
 			);
 			projectRoot = "";

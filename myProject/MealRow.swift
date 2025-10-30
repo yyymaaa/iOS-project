@@ -1,111 +1,104 @@
 import SwiftUI
 import FirebaseCore
 
+
+
 struct MealRow: View {
     let meal: Meal
     @EnvironmentObject var cartManager: CartManager
-    @State private var quantity: Int = 1
-    @State private var showConfirmation = false
-
+    @State private var showAddedAnimation = false
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-
-            // Meal image
-            AsyncImage(url: URL(string: meal.imageUrl)) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Color.gray.opacity(0.2)
-            }
-            .frame(height: 180)
-            .clipped()
-            .cornerRadius(12)
-
-            // Meal details
-            VStack(alignment: .leading, spacing: 4) {
-                Text(meal.name)
-                    .font(.headline)
-
-                Text(meal.description)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-
-                HStack(spacing: 6) {
-                    Text("Ksh \(Int(meal.discountPrice))")
-                        .foregroundColor(.green)
-                        .bold()
-                    if meal.discountPrice < meal.price {
-                        Text("Ksh \(Int(meal.price))")
-                            .strikethrough()
-                            .foregroundColor(.gray)
-                    }
-                }
-            }
-
-            // Quantity and Add button
-            HStack(spacing: 16) {
-                HStack(spacing: 12) {
-                    Button(action: { if quantity > 1 { quantity -= 1 } }) {
-                        Text("-")
-                            .font(.title2)
-                            .foregroundColor(.green)
-                    }
-
-                    Text("\(quantity)")
-                        .font(.body)
-                        .frame(width: 24)
-
-                    Button(action: { quantity += 1 }) {
-                        Text("+")
-                            .font(.title2)
-                            .foregroundColor(.green)
-                    }
-                }
-
-                Spacer()
-
-                // Add to Cart button
-                Button(action: {
-                    cartManager.addToCart(meal, quantity: quantity)
-                    showConfirmation = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        showConfirmation = false
-                    }
-                }) {
-                    Text("Add to Cart")
-                        .font(.subheadline)
-                        .bold()
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .clipShape(Capsule())
-                        .shadow(radius: 2)
-                }
-            }
-            .padding(.top, 6)
-
-            Divider()
-                .padding(.top, 10)
+        HStack(spacing: 16) {
+            mealImage
+            mealDetails
+            Spacer()
+            addButton
         }
-        .padding(.horizontal)
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: .luxBurgundy.opacity(0.08), radius: 12, x: 0, y: 4)
         .overlay(
-            // Confirmation message
-            Group {
-                if showConfirmation {
-                    Text("Added to cart")
-                        .font(.caption)
-                        .padding(8)
-                        .background(Color.black.opacity(0.7))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                        .transition(.opacity)
-                        .animation(.easeInOut(duration: 0.3), value: showConfirmation)
-                        .offset(y: -20)
-                }
-            },
-            alignment: .topTrailing
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.luxBurgundy.opacity(0.1), lineWidth: 1)
         )
+    }
+    
+    private var mealImage: some View {
+        AsyncImage(url: URL(string: meal.imageUrl)) { image in
+            image
+                .resizable()
+                .scaledToFill()
+        } placeholder: {
+            Color.luxBurgundy.opacity(0.1)
+                .overlay(
+                    Image(systemName: "fork.knife")
+                        .font(.title3)
+                        .foregroundColor(.luxBurgundy.opacity(0.5))
+                )
+        }
+        .frame(width: 90, height: 90)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+    
+    private var mealDetails: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(meal.name)
+                .font(.system(size: 18, weight: .semibold, design: .serif))
+                .foregroundColor(.luxDeepBurgundy)
+                .lineLimit(2)
+            
+            Text(meal.description)
+                .font(.system(size: 13))
+                .foregroundColor(.gray)
+                .lineLimit(2)
+            
+            HStack(spacing: 8) {
+                Text("KSh \(String(format: "%.0f", meal.discountPrice))")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(.luxBurgundy)
+                
+                if meal.discountPrice < meal.price {
+                    Text("KSh \(String(format: "%.0f", meal.price))")
+                        .font(.system(size: 13))
+                        .foregroundColor(.gray)
+                        .strikethrough()
+                }
+            }
+        }
+    }
+    
+    private var addButton: some View {
+        Button(action: {
+            cartManager.addToCart(meal, quantity: 1)
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                showAddedAnimation = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                withAnimation {
+                    showAddedAnimation = false
+                }
+            }
+        }) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.luxBurgundy, .luxDeepBurgundy],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 48, height: 48)
+                    .shadow(color: .luxBurgundy.opacity(0.4), radius: 8, x: 0, y: 4)
+                
+                Image(systemName: showAddedAnimation ? "checkmark" : "plus")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+        }
+        .scaleEffect(showAddedAnimation ? 1.2 : 1.0)
+
     }
 }

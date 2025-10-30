@@ -7,7 +7,10 @@ struct CheckoutView: View {
     @State private var alertMessage = ""
     @State private var isProcessing = false
     @State private var paymentSuccess = false
+    @State private var isAnimating = false
     
+    @State private var navigateToOrders = false
+
     @EnvironmentObject var cartManager: CartManager
 
     private var totalAmount: Double {
@@ -24,54 +27,70 @@ struct CheckoutView: View {
         ZStack {
             backgroundGradient
             mainContent
+            
+            NavigationLink(destination: MyOrdersView(), isActive: $navigateToOrders) {
+                    EmptyView()
+                }
         }
+        .navigationBarHidden(true)
         .alert(isPresented: $showAlert) {
             alertView
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.8)) {
+                isAnimating = true
+            }
         }
     }
     
     // Background
     private var backgroundGradient: some View {
-        LinearGradient(
-            colors: [
-                Color.green.opacity(0.1),
-                Color.mint.opacity(0.05),
-                Color.white,
-                Color.green.opacity(0.02)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
+        Color.luxCream
+            .ignoresSafeArea()
     }
     
     // Main Content
     private var mainContent: some View {
-        ScrollView {
-            VStack(spacing: 30) {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 32) {
                 headerSection
                 orderSummaryCard
                 paymentSection
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 24)
             .padding(.bottom, 40)
         }
     }
     
     // Header Section
     private var headerSection: some View {
-        VStack(spacing: 12) {
-            HStack {
+        VStack(spacing: 16) {
+            HStack(alignment: .center) {
                 backButton
+                
                 Spacer()
+                
                 titleSection
+                
                 Spacer()
+                
                 progressIndicator
             }
             
-            dividerLine
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [.luxBurgundy, .luxBurgundy.opacity(0.3), .clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 2)
+                .frame(maxWidth: 180)
         }
-        .padding(.top, 10)
+        .padding(.top, 16)
+        .opacity(isAnimating ? 1 : 0)
+        .offset(y: isAnimating ? 0 : -20)
     }
     
     private var backButton: some View {
@@ -79,82 +98,86 @@ struct CheckoutView: View {
             // Back action
         }) {
             Image(systemName: "chevron.left")
-                .font(.title2)
-                .foregroundColor(.green)
+                .font(.system(size: 20, weight: .medium))
+                .foregroundColor(.luxBurgundy)
                 .padding(12)
                 .background(Color.white)
                 .clipShape(Circle())
-                .shadow(color: .green.opacity(0.2), radius: 8, x: 0, y: 4)
+                .shadow(color: .luxBurgundy.opacity(0.15), radius: 8, x: 0, y: 4)
         }
     }
     
     private var titleSection: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Text("Secure Checkout")
-                .font(.title.bold())
-                .foregroundColor(.primary)
+                .font(.system(size: 28, weight: .semibold, design: .serif))
+                .foregroundColor(.luxDeepBurgundy)
             
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 Image(systemName: "lock.shield.fill")
-                    .foregroundColor(.green)
-                    .font(.caption)
-                Text("256-bit SSL Encrypted")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.luxGold)
+                    .font(.system(size: 11))
+                Text("Encrypted Payment")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.gray)
             }
         }
     }
     
     private var progressIndicator: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             ZStack {
                 Circle()
-                    .stroke(Color.green.opacity(0.3), lineWidth: 3)
-                    .frame(width: 40, height: 40)
+                    .stroke(Color.luxBurgundy.opacity(0.2), lineWidth: 3)
+                    .frame(width: 44, height: 44)
                 
                 Circle()
                     .trim(from: 0, to: 0.75)
-                    .stroke(Color.green, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .frame(width: 40, height: 40)
+                    .stroke(
+                        LinearGradient(
+                            colors: [.luxBurgundy, .luxGold],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                    )
+                    .frame(width: 44, height: 44)
                     .rotationEffect(.degrees(-90))
                 
                 Text("3/4")
-                    .font(.caption2.bold())
-                    .foregroundColor(.green)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(.luxBurgundy)
             }
-            Text("Almost done!")
-                .font(.caption2)
-                .foregroundColor(.secondary)
+            
+            Text("Final Step")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.gray)
         }
-    }
-    
-    private var dividerLine: some View {
-        Rectangle()
-            .frame(height: 1)
-            .foregroundColor(.green.opacity(0.3))
-            .padding(.horizontal, 40)
     }
     
     // Order Summary Card
     private var orderSummaryCard: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             orderHeader
             itemsList
             totalSection
         }
-        .padding(24)
+        .padding(28)
         .background(cardBackground)
+        .opacity(isAnimating ? 1 : 0)
+        .offset(y: isAnimating ? 0 : 30)
+        .animation(.easeOut(duration: 0.7).delay(0.2), value: isAnimating)
     }
     
     private var orderHeader: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Order Summary")
-                    .font(.title3.bold())
-                    .foregroundColor(.primary)
-                Text("Order #ORD-2024-001")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 22, weight: .semibold, design: .serif))
+                    .foregroundColor(.luxDeepBurgundy)
+                Text("Order #ORD-\(String(format: "%04d", Int.random(in: 1000...9999)))")
+                    .font(.system(size: 13))
+                    .foregroundColor(.gray)
             }
             
             Spacer()
@@ -164,90 +187,119 @@ struct CheckoutView: View {
     }
     
     private var statusBadge: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 6) {
             Circle()
-                .fill(Color.green)
+                .fill(
+                    LinearGradient(
+                        colors: [.luxGold, .luxGold.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .frame(width: 8, height: 8)
-            Text("Ready to Pay")
-                .font(.caption.bold())
-                .foregroundColor(.green)
+            Text("Ready")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(.luxBurgundy)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.green.opacity(0.1))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(Color.luxGold.opacity(0.15))
         .cornerRadius(20)
     }
     
     private var itemsList: some View {
-        VStack(spacing: 12) {
-            ForEach(cartItems, id: \.0) { item in
+        VStack(spacing: 16) {
+            ForEach(Array(cartItems.enumerated()), id: \.offset) { index, item in
                 itemRow(item)
                 
-                if item.0 != cartItems.last?.0 {
+                if index != cartItems.count - 1 {
                     Divider()
-                        .opacity(0.5)
+                        .background(Color.luxBurgundy.opacity(0.1))
                 }
             }
         }
     }
     
     private func itemRow(_ item: (String, Int, Double)) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             itemImage
             itemDetails(item)
             Spacer()
             itemPrice(item.2)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
     }
     
     private var itemImage: some View {
-        RoundedRectangle(cornerRadius: 8)
-            .fill(Color.green.opacity(0.1))
-            .frame(width: 50, height: 50)
+        RoundedRectangle(cornerRadius: 12)
+            .fill(
+                LinearGradient(
+                    colors: [.luxBurgundy.opacity(0.1), .luxLightBurgundy.opacity(0.05)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .frame(width: 56, height: 56)
             .overlay(
                 Image(systemName: "fork.knife")
-                    .foregroundColor(.green)
-                    .font(.title3)
+                    .foregroundColor(.luxBurgundy)
+                    .font(.system(size: 20))
             )
     }
     
     private func itemDetails(_ item: (String, Int, Double)) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(item.0)
-                .font(.headline)
-                .foregroundColor(.primary)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.luxDeepBurgundy)
             
             HStack(spacing: 8) {
                 Text("Qty: \(item.1)")
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.green.opacity(0.1))
-                    .cornerRadius(4)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.luxBurgundy)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Color.luxBurgundy.opacity(0.08))
+                    .cornerRadius(6)
                 
-                Text("Fresh & Hot")
-                    .font(.caption)
-                    .foregroundColor(.green)
+                HStack(spacing: 4) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 9))
+                    Text("Fresh")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundColor(.luxGold)
             }
         }
     }
     
     private func itemPrice(_ price: Double) -> some View {
         Text("KSh \(String(format: "%.2f", price))")
-            .font(.headline.bold())
-            .foregroundColor(.primary)
+            .font(.system(size: 17, weight: .bold))
+            .foregroundColor(.luxDeepBurgundy)
     }
     
     private var totalSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
             Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [.luxBurgundy.opacity(0.3), .clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
                 .frame(height: 1)
-                .foregroundColor(.green.opacity(0.3))
             
-            VStack(spacing: 8) {
+            VStack(spacing: 10) {
                 subtotalRow
                 serviceFeeRow
+                
+                Rectangle()
+                    .fill(Color.luxBurgundy.opacity(0.1))
+                    .frame(height: 1)
+                    .padding(.vertical, 4)
+                
                 totalRow
             }
         }
@@ -256,39 +308,52 @@ struct CheckoutView: View {
     private var subtotalRow: some View {
         HStack {
             Text("Subtotal")
-                .foregroundColor(.secondary)
+                .font(.system(size: 15))
+                .foregroundColor(.gray)
             Spacer()
             Text("KSh \(String(format: "%.2f", totalAmount))")
-                .foregroundColor(.secondary)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.gray)
         }
     }
     
     private var serviceFeeRow: some View {
         HStack {
-            Text("Service Fee")
-                .foregroundColor(.secondary)
+            HStack(spacing: 6) {
+                Text("Service Fee")
+                    .font(.system(size: 15))
+                Image(systemName: "info.circle")
+                    .font(.system(size: 12))
+            }
+            .foregroundColor(.gray)
+            
             Spacer()
+            
             Text("Free")
-                .foregroundColor(.green)
-                .font(.caption.bold())
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(.luxGold)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Color.luxGold.opacity(0.1))
+                .cornerRadius(6)
         }
     }
     
     private var totalRow: some View {
         HStack {
             Text("Total Amount")
-                .font(.title3.bold())
-                .foregroundColor(.primary)
+                .font(.system(size: 20, weight: .semibold, design: .serif))
+                .foregroundColor(.luxDeepBurgundy)
             Spacer()
             Text("KSh \(String(format: "%.2f", totalAmount))")
-                .font(.title2.bold())
-                .foregroundColor(.green)
+                .font(.system(size: 24, weight: .bold, design: .serif))
+                .foregroundColor(.luxBurgundy)
         }
     }
     
     // Payment Section
     private var paymentSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             paymentHeader
             mpesaButton
             
@@ -296,152 +361,200 @@ struct CheckoutView: View {
                 phoneInputSection
             }
         }
-        .padding(24)
+        .padding(28)
         .background(cardBackground)
+        .opacity(isAnimating ? 1 : 0)
+        .offset(y: isAnimating ? 0 : 30)
+        .animation(.easeOut(duration: 0.7).delay(0.3), value: isAnimating)
     }
     
     private var paymentHeader: some View {
         HStack {
-            Text("Payment Method")
-                .font(.title3.bold())
-                .foregroundColor(.primary)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Payment Method")
+                    .font(.system(size: 22, weight: .semibold, design: .serif))
+                    .foregroundColor(.luxDeepBurgundy)
+                Text("Choose your preferred option")
+                    .font(.system(size: 13))
+                    .foregroundColor(.gray)
+            }
             
             Spacer()
             
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 Image(systemName: "checkmark.shield.fill")
-                    .foregroundColor(.green)
-                    .font(.caption)
+                    .foregroundColor(.luxGold)
+                    .font(.system(size: 12))
                 Text("Secure")
-                    .font(.caption.bold())
-                    .foregroundColor(.green)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.luxBurgundy)
             }
         }
     }
     
     private var mpesaButton: some View {
         Button(action: {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                 showMpesaField.toggle()
             }
         }) {
-            HStack(spacing: 12) {
+            HStack(spacing: 16) {
                 mpesaIcon
                 mpesaText
                 Spacer()
                 chevronIcon
             }
-            .padding(20)
+            .padding(22)
             .background(mpesaButtonGradient)
-            .cornerRadius(16)
-            .shadow(color: .green.opacity(0.3), radius: 12, x: 0, y: 6)
-            .scaleEffect(showMpesaField ? 1.02 : 1.0)
+            .cornerRadius(18)
+            .shadow(color: .luxBurgundy.opacity(0.3), radius: 16, x: 0, y: 8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(Color.luxGold.opacity(0.3), lineWidth: 1)
+            )
+            .scaleEffect(showMpesaField ? 1.0 : 1.0)
         }
     }
     
     private var mpesaIcon: some View {
         ZStack {
             Circle()
+                .fill(Color.white.opacity(0.2))
+                .frame(width: 48, height: 48)
+            
+            Circle()
                 .fill(Color.white)
-                .frame(width: 40, height: 40)
+                .frame(width: 44, height: 44)
             
             Image(systemName: "phone.fill")
-                .font(.title3)
-                .foregroundColor(.green)
+                .font(.system(size: 20))
+                .foregroundColor(.luxBurgundy)
         }
     }
     
     private var mpesaText: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 4) {
             Text("Pay with M-Pesa")
-                .font(.headline.bold())
+                .font(.system(size: 18, weight: .semibold, design: .serif))
                 .foregroundColor(.white)
-            Text("Safe, fast & convenient")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.8))
+            Text("Safe, fast & convenient payment")
+                .font(.system(size: 13))
+                .foregroundColor(.white.opacity(0.85))
         }
     }
     
     private var chevronIcon: some View {
         Image(systemName: showMpesaField ? "chevron.up" : "chevron.down")
-            .font(.title3)
-            .foregroundColor(.white)
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundColor(.white.opacity(0.9))
             .rotationEffect(.degrees(showMpesaField ? 180 : 0))
     }
     
     private var mpesaButtonGradient: some View {
         LinearGradient(
-            colors: [Color.green, Color.green.opacity(0.8)],
-            startPoint: .leading,
-            endPoint: .trailing
+            colors: [.luxBurgundy, .luxDeepBurgundy],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
     }
     
-    //  Phone Input Section
+    // Phone Input Section
     private var phoneInputSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             phoneInputHeader
             phoneInputRow
             confirmButton
             trustIndicators
         }
-        .padding(20)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .green.opacity(0.1), radius: 12, x: 0, y: 4)
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.white)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.luxGold.opacity(0.3), .luxBurgundy.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: .luxBurgundy.opacity(0.12), radius: 16, x: 0, y: 8)
         .transition(.asymmetric(
-            insertion: .scale.combined(with: .opacity),
-            removal: .scale.combined(with: .opacity)
+            insertion: .scale(scale: 0.95).combined(with: .opacity),
+            removal: .scale(scale: 0.95).combined(with: .opacity)
         ))
     }
     
     private var phoneInputHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Enter your M-Pesa number")
-                .font(.headline)
-                .foregroundColor(.primary)
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Enter M-Pesa Number")
+                .font(.system(size: 18, weight: .semibold, design: .serif))
+                .foregroundColor(.luxDeepBurgundy)
             
-            Text("You'll receive a payment prompt on your phone")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            HStack(spacing: 6) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(.luxGold)
+                Text("You'll receive a payment prompt on your phone")
+                    .font(.system(size: 13))
+                    .foregroundColor(.gray)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private var phoneInputRow: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             countryCodeSection
             phoneNumberField
         }
     }
     
     private var countryCodeSection: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 4) {
+        VStack(spacing: 6) {
+            HStack(spacing: 6) {
                 Text("🇰🇪")
+                    .font(.system(size: 20))
                 Text("+254")
-                    .font(.headline.bold())
-                    .foregroundColor(.primary)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(.luxDeepBurgundy)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 16)
-            .background(Color.green.opacity(0.1))
-            .cornerRadius(12)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 18)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(
+                        LinearGradient(
+                            colors: [.luxBurgundy.opacity(0.08), .luxLightBurgundy.opacity(0.04)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.luxBurgundy.opacity(0.15), lineWidth: 1)
+            )
             
             Text("Kenya")
-                .font(.caption2)
-                .foregroundColor(.secondary)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.gray)
         }
     }
     
     private var phoneNumberField: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             TextField("7XX XXX XXX", text: $phoneNumber)
                 .keyboardType(.numberPad)
-                .font(.headline)
-                .padding(16)
-                .background(Color.gray.opacity(0.05))
-                .cornerRadius(12)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(.luxDeepBurgundy)
+                .padding(18)
+                .background(Color.luxCream)
+                .cornerRadius(14)
                 .overlay(phoneFieldBorder)
                 .onChange(of: phoneNumber) { newValue in
                     let filtered = newValue.filter { $0.isNumber }
@@ -455,9 +568,19 @@ struct CheckoutView: View {
     }
     
     private var phoneFieldBorder: some View {
-        RoundedRectangle(cornerRadius: 12)
+        RoundedRectangle(cornerRadius: 14)
             .stroke(
-                phoneNumber.count == 9 ? Color.green : Color.gray.opacity(0.3),
+                phoneNumber.count == 9 ?
+                LinearGradient(
+                    colors: [.luxGold, .luxBurgundy],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                ) :
+                LinearGradient(
+                    colors: [.gray.opacity(0.2), .gray.opacity(0.2)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                ),
                 lineWidth: phoneNumber.count == 9 ? 2 : 1
             )
     }
@@ -473,36 +596,38 @@ struct CheckoutView: View {
             Spacer()
             
             Text("\(phoneNumber.count)/9")
-                .font(.caption2)
-                .foregroundColor(.secondary)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.gray)
         }
-        .font(.caption)
-        .padding(.horizontal, 4)
+        .font(.system(size: 13))
+        .padding(.horizontal, 6)
     }
     
     private var validNumberIndicator: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
-                .font(.caption)
+                .foregroundColor(.luxGold)
+                .font(.system(size: 13))
             Text("Valid number")
-                .foregroundColor(.green)
+                .foregroundColor(.luxBurgundy)
+                .font(.system(size: 12, weight: .medium))
         }
     }
     
     private var invalidNumberIndicator: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             Image(systemName: "exclamationmark.circle.fill")
                 .foregroundColor(.orange)
-                .font(.caption)
+                .font(.system(size: 13))
             Text("Enter 9 digits")
                 .foregroundColor(.orange)
+                .font(.system(size: 12, weight: .medium))
         }
     }
     
     private var confirmButton: some View {
         Button(action: handlePayment) {
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 if isProcessing {
                     processingContent
                 } else {
@@ -510,29 +635,38 @@ struct CheckoutView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(18)
+            .padding(20)
             .background(confirmButtonGradient)
             .cornerRadius(16)
             .shadow(
-                color: phoneNumber.count == 9 ? .green.opacity(0.4) : .clear,
-                radius: 12,
+                color: phoneNumber.count == 9 && !isProcessing ? .luxBurgundy.opacity(0.4) : .clear,
+                radius: 16,
                 x: 0,
-                y: 6
+                y: 8
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        phoneNumber.count == 9 && !isProcessing ?
+                        Color.luxGold.opacity(0.5) : Color.clear,
+                        lineWidth: 1
+                    )
             )
             .scaleEffect(isProcessing ? 0.98 : 1.0)
         }
         .disabled(phoneNumber.count != 9 || isProcessing)
         .animation(.easeInOut(duration: 0.2), value: phoneNumber.count)
+        .animation(.easeInOut(duration: 0.2), value: isProcessing)
     }
     
     private var processingContent: some View {
         Group {
             ProgressView()
-                .scaleEffect(0.8)
+                .scaleEffect(0.9)
                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
             
-            Text("Processing...")
-                .font(.headline.bold())
+            Text("Processing Payment...")
+                .font(.system(size: 17, weight: .semibold, design: .serif))
                 .foregroundColor(.white)
         }
     }
@@ -540,15 +674,15 @@ struct CheckoutView: View {
     private var confirmContent: some View {
         Group {
             Image(systemName: "lock.shield.fill")
-                .font(.title3)
+                .font(.system(size: 20))
                 .foregroundColor(.white)
             
-            VStack(spacing: 2) {
+            VStack(spacing: 3) {
                 Text("Confirm Payment")
-                    .font(.headline.bold())
+                    .font(.system(size: 17, weight: .semibold, design: .serif))
                     .foregroundColor(.white)
                 Text("KSh \(String(format: "%.2f", totalAmount))")
-                    .font(.caption.bold())
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white.opacity(0.9))
             }
         }
@@ -557,41 +691,54 @@ struct CheckoutView: View {
     private var confirmButtonGradient: some View {
         LinearGradient(
             colors: phoneNumber.count == 9 && !isProcessing ?
-            [Color.green, Color.green.opacity(0.8)] :
-                [Color.gray.opacity(0.6), Color.gray.opacity(0.4)],
-            startPoint: .leading,
-            endPoint: .trailing
+            [.luxBurgundy, .luxDeepBurgundy] :
+            [.gray.opacity(0.5), .gray.opacity(0.4)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
     }
     
     private var trustIndicators: some View {
-        HStack(spacing: 20) {
-            trustIndicator(icon: "shield.checkered", text: "Bank-level security")
-            trustIndicator(icon: "clock", text: "Instant processing")
-            trustIndicator(icon: "hand.raised.fill", text: "No hidden fees")
+        HStack(spacing: 0) {
+            trustIndicator(icon: "shield.lefthalf.filled", text: "Bank-level security")
+            
+            Spacer()
+            
+            trustIndicator(icon: "bolt.fill", text: "Instant")
+            
+            Spacer()
+            
+            trustIndicator(icon: "creditcard", text: "No fees")
         }
-        .padding(.top, 8)
+        .padding(.top, 12)
     }
     
     private func trustIndicator(icon: String, text: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             Image(systemName: icon)
-                .foregroundColor(.green)
-                .font(.caption)
+                .foregroundColor(.luxGold)
+                .font(.system(size: 12))
             Text(text)
-                .font(.caption2)
-                .foregroundColor(.secondary)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.gray)
         }
     }
     
     // Shared Components
     private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: 20)
+        RoundedRectangle(cornerRadius: 24)
             .fill(Color.white)
-            .shadow(color: .green.opacity(0.1), radius: 20, x: 0, y: 8)
+            .shadow(color: .luxBurgundy.opacity(0.12), radius: 24, x: 0, y: 12)
             .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.green.opacity(0.2), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(
+                        LinearGradient(
+                            colors: [.luxBurgundy.opacity(0.15), .luxGold.opacity(0.1), .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
             )
     }
     
@@ -645,6 +792,9 @@ struct CheckoutView: View {
                 if success {
                     alertMessage = "Payment prompt sent to +254\(phoneNumber)"
                     paymentSuccess = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            navigateToOrders = true
+                        }
                 } else {
                     alertMessage = "Failed to initiate payment."
                     paymentSuccess = false
