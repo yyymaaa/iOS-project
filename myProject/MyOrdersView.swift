@@ -10,7 +10,7 @@ struct MyOrdersView: View {
     @State private var isAnimating = false
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.luxCream.ignoresSafeArea()
 
@@ -175,9 +175,7 @@ struct MyOrdersView: View {
             .offset(y: isAnimating ? 0 : 20)
             .animation(.easeOut(duration: 0.6).delay(0.3), value: isAnimating)
             
-            Button(action: {
-                // Navigate to home or restaurants
-            }) {
+            NavigationLink(destination: HomeView()) {
                 HStack(spacing: 10) {
                     Image(systemName: "fork.knife")
                         .font(.system(size: 16))
@@ -201,6 +199,7 @@ struct MyOrdersView: View {
                         .stroke(Color.luxGold.opacity(0.3), lineWidth: 1)
                 )
             }
+
             .opacity(isAnimating ? 1 : 0)
             .offset(y: isAnimating ? 0 : 20)
             .animation(.easeOut(duration: 0.6).delay(0.4), value: isAnimating)
@@ -237,40 +236,18 @@ struct MyOrdersView: View {
             .whereField("userID", isEqualTo: userID)
             .order(by: "createdAt", descending: true)
             .addSnapshotListener { snapshot, error in
-                if let error = error {
-                    errorMessage = error.localizedDescription
-                    isLoading = false
+                guard let snapshot = snapshot else {
+                    self.orders = []
+                    self.isLoading = false
                     return
                 }
 
-                guard let documents = snapshot?.documents else {
-                    orders = []
-                    isLoading = false
-                    return
+                self.orders = snapshot.documents.compactMap { doc in
+                    try? doc.data(as: Order.self)
                 }
-
-                orders = documents.compactMap { doc in
-                    let data = doc.data()
-                    guard let mealID = data["mealID"] as? String,
-                          let userID = data["userID"] as? String else {
-                        return nil
-                    }
-                    return Order(
-                        id: doc.documentID,
-                        mealID: mealID,
-                        mealName: data["mealName"] as? String ?? "Meal",
-                        amountPaid: data["amountPaid"] as? Double ?? 0.0,
-                        paymentMethod: data["paymentMethod"] as? String ?? "N/A",
-                        status: data["status"] as? String ?? "pending",
-                        userID: userID,
-                        restaurantID: data["restaurantID"] as? String ?? "unknown",
-                        createdAt: (data["createdAt"] as? Timestamp)?.dateValue() ?? Date()
-                    )
-
-                }
-
-                isLoading = false
+                self.isLoading = false
             }
+
     }
 }
 

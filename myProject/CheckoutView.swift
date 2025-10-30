@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseFirestore
 
 struct CheckoutView: View {
     @State private var showMpesaField = false
@@ -792,6 +793,30 @@ struct CheckoutView: View {
                 if success {
                     alertMessage = "Payment prompt sent to +254\(phoneNumber)"
                     paymentSuccess = true
+                    
+                    let db = Firestore.firestore()
+                        let orderData: [String: Any] = [
+                            "userID": "currentUserID", // replace with actual user ID
+                            "amountPaid": totalAmount,
+                            "paymentMethod": "MPesa",
+                            "status": "pending",
+                            "createdAt": Timestamp(),
+                            "cartItems": cartManager.cartItems.map { [
+                                "mealID": $0.meal.id ?? "",
+                                "mealName": $0.meal.name,
+                                "quantity": $0.quantity,
+                                "price": $0.meal.discountPrice
+                            ]}
+                        ]
+
+                        db.collection("orders").addDocument(data: orderData) { err in
+                            if let err = err {
+                                print("Error adding order: \(err.localizedDescription)")
+                            } else {
+                                print("Order successfully added!")
+                            }
+                        }
+                    
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                             navigateToOrders = true
                         }
