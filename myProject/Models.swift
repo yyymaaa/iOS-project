@@ -9,6 +9,7 @@ struct Order: Identifiable, Codable {
     var status: String
     var customerID: String
     var customerEmail: String?
+    var customerPhone: String?
     var customerName: String?
     var restaurantID: String
     var createdAt: Date
@@ -57,4 +58,6 @@ struct User {
     var email: String
     var role: String
     var restaurantID: String? = nil
+    var fullName: String = ""
+    var phoneNumber: String = ""
 }

@@ -14,6 +14,7 @@ struct RegisterView: View {
     @State private var passwordError = ""
     @State private var showPasswordError = false
     @State private var isAnimating = false
+    @State private var phoneNumber = ""
     
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.presentationMode) var presentationMode
@@ -133,6 +134,8 @@ struct RegisterView: View {
                         // Dynamic Fields
                         if selectedRole == "User" {
                             luxuryTextField(icon: "person", placeholder: "Full Name", text: $fullName)
+                            luxuryTextField(icon: "phone", placeholder: "Phone Number", text: $phoneNumber) // ADD THIS LINE
+                                    .keyboardType(.phonePad)
                         } else {
                             luxuryTextField(icon: "building.2", placeholder: "Restaurant Name", text: $restaurantName)
                             luxuryTextField(icon: "location", placeholder: "Location", text: $restaurantLocation)
@@ -253,8 +256,17 @@ struct RegisterView: View {
     private func register() {
         guard validatePasswords() else { return }
         
+        // Validate phone number for users
+        if selectedRole == "User" && !isValidPhoneNumber(phoneNumber) {
+            withAnimation {
+                passwordError = "Please enter a valid phone number (10 digits starting with 07 or 01)"
+                showPasswordError = true
+            }
+            return
+        }
+        
         if selectedRole == "User" {
-            authViewModel.registerUser(fullName: fullName, email: email, password: password) { error in
+            authViewModel.registerUser(fullName: fullName, email: email, password: password, phoneNumber: phoneNumber) { error in
                 if let error = error {
                     print("Client registration failed: \(error.localizedDescription)")
                 } else {
@@ -276,6 +288,13 @@ struct RegisterView: View {
                 }
             }
         }
+    }
+
+    // ADD this validation function right after the register function
+    private func isValidPhoneNumber(_ phone: String) -> Bool {
+        let phoneRegex = #"^(07|01)\d{8}$"#
+        let predicate = NSPredicate(format: "SELF MATCHES %@", phoneRegex)
+        return predicate.evaluate(with: phone)
     }
     
     private func validatePasswords() -> Bool {

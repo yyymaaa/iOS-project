@@ -110,6 +110,41 @@ struct RestaurantDashboardView: View {
             
             Divider().background(burgundy.opacity(0.2))
             
+            // Customer Information - NEW SECTION
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Customer Information")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(burgundy.opacity(0.8))
+                
+                HStack {
+                    Label(order.customerName ?? "Customer", systemImage: "person.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(deepBurgundy)
+                    
+                    Spacer()
+                    
+                    // Clickable phone number
+                    if let phone = order.customerPhone, !phone.isEmpty {
+                        Button(action: {
+                            callCustomer(phone: phone)
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "phone.fill")
+                                    .font(.system(size: 12))
+                                Text(phone)
+                                    .font(.system(size: 14, weight: .medium))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(burgundy)
+                            .cornerRadius(8)
+                        }
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+            
             HStack {
                 Label("KSh \(String(format: "%.2f", order.totalAmount))", systemImage: "creditcard")
                     .font(.system(size: 14))
@@ -378,6 +413,20 @@ struct RestaurantDashboardView: View {
             .padding()
         }
         .background(cream)
+    }
+    
+    private func callCustomer(phone: String) {
+        let tel = "tel://"
+        let formattedNumber = tel + phone
+        guard let url = URL(string: formattedNumber) else { return }
+        
+        #if targetEnvironment(simulator)
+        // Simulator can't make calls, show alert instead
+        alertMessage = "Calling \(phone) - This would open the phone app on a real device"
+        showAlert = true
+        #else
+        UIApplication.shared.open(url)
+        #endif
     }
     
     private func statCard(title: String, value: String, icon: String) -> some View {

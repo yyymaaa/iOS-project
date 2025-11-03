@@ -823,38 +823,56 @@ struct CheckoutView: View {
         
         let orderNumber = "ORD-\(String(format: "%04d", Int.random(in: 1000...9999)))"
         
-        let orderData: [String: Any] = [
-            "items": orderItems,
-            "totalAmount": totalAmount,
-            "paymentMethod": "MPesa",
-            "status": "pending",
-            "customerID": Auth.auth().currentUser?.uid ?? "unknown",
-            "customerEmail": Auth.auth().currentUser?.email ?? "",
-            "restaurantID": restaurantID,
-            "createdAt": Timestamp(date: Date()),
-            "orderNumber": orderNumber
-        ]
-
-        // DEBUG: Print what we're saving
-        print("Creating order with data:")
-        print("   - Order Number: \(orderNumber)")
-        print("   - Restaurant ID: \(restaurantID)")
-        print("   - Customer ID: \(Auth.auth().currentUser?.uid ?? "unknown")")
-        print("   - Items: \(orderItems.count)")
-        print("   - Total: KSh \(totalAmount)")
-
-        // Add the order to Firestore
-        db.collection("orders").addDocument(data: orderData) { err in
-            if let err = err {
-                print("❌ Error adding order: \(err.localizedDescription)")
+        // Fetch customer details FIRST, then create order
+        guard let userID = Auth.auth().currentUser?.uid else {
+            print("No user ID found")
+            return
+        }
+        
+        let userDB = Firestore.firestore()
+        userDB.collection("users").document(userID).getDocument { userDoc, error in
+            var customerName = ""
+            var customerPhone = ""
+            
+            if let userData = userDoc?.data() {
+                customerName = userData["fullName"] as? String ?? ""
+                customerPhone = userData["phoneNumber"] as? String ?? ""
+                print("Found customer: \(customerName), Phone: \(customerPhone)")
             } else {
-                print("Order successfully added to Firestore!")
-                print("Order details:")
-                print("   - Order Number: \(orderNumber)")
-                print("   - Restaurant: \(restaurantID)")
-                print("   - Items: \(orderItems.count)")
-                print("   - Total: KSh \(totalAmount)")
-                print("   - Customer: \(Auth.auth().currentUser?.uid ?? "unknown")")
+                print("No user data found for user ID: \(userID)")
+            }
+            
+            let orderData: [String: Any] = [
+                "items": orderItems,
+                "totalAmount": totalAmount,
+                "paymentMethod": "MPesa",
+                "status": "pending",
+                "customerID": userID,
+                "customerEmail": Auth.auth().currentUser?.email ?? "",
+                "customerName": customerName,
+                "customerPhone": customerPhone,
+                "restaurantID": restaurantID,
+                "createdAt": Timestamp(date: Date()),
+                "orderNumber": orderNumber
+            ]
+
+            print("🛒 Creating order with customer info:")
+            print("   - Customer Name: \(customerName)")
+            print("   - Customer Phone: \(customerPhone)")
+            print("   - Order Number: \(orderNumber)")
+
+            // Add the order to Firestore ONLY ONCE
+            db.collection("orders").addDocument(data: orderData) { err in
+                if let err = err {
+                    print("Error adding order: \(err.localizedDescription)")
+                } else {
+                    print("Order successfully added with customer info!")
+                    print("Order details:")
+                    print("   - Customer: \(customerName)")
+                    print("   - Phone: \(customerPhone)")
+                    print("   - Items: \(orderItems.count)")
+                    print("   - Total: KSh \(totalAmount)")
+                }
             }
         }
     }

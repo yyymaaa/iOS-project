@@ -6,7 +6,7 @@ class MealService: ObservableObject {
     @Published var meals: [Meal] = []
     private let db = Firestore.firestore()
 
-    // ✅ Fetch meals for a restaurant
+    // Fetch meals for a restaurant
     func fetchMeals(for restaurantID: String) {
         db.collection("meals")
             .whereField("restaurantID", isEqualTo: restaurantID)
@@ -23,7 +23,7 @@ class MealService: ObservableObject {
             }
     }
 
-    // ✅ Add new meal
+    // Add new meal
     func addMeal(_ meal: Meal, completion: @escaping (Error?) -> Void) {
         do {
             _ = try db.collection("meals").addDocument(from: meal)
@@ -33,7 +33,7 @@ class MealService: ObservableObject {
         }
     }
 
-    // ✅ Update existing meal
+    // Update existing meal
     func updateMeal(_ meal: Meal) {
         guard let id = meal.id else { return }
         do {
@@ -43,7 +43,7 @@ class MealService: ObservableObject {
         }
     }
 
-    // ✅ Delete a meal
+    // Delete a meal
     func deleteMeal(_ meal: Meal) {
         guard let id = meal.id else { return }
         db.collection("meals").document(id).delete { error in

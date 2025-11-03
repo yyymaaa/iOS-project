@@ -19,7 +19,7 @@ class AuthViewModel: ObservableObject {
     }
     
     // MARK: - Client Registration
-    func registerUser(fullName: String, email: String, password: String, completion: @escaping (Error?) -> Void) {
+    func registerUser(fullName: String, email: String, password: String, phoneNumber: String, completion: @escaping (Error?) -> Void) {
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
             if let error = error { completion(error); return }
             guard let user = result?.user else {
@@ -32,9 +32,11 @@ class AuthViewModel: ObservableObject {
             let data: [String: Any] = [
                 "fullName": fullName,
                 "email": email,
+                "phoneNumber": phoneNumber,
                 "createdAt": Timestamp(),
                 "role": "client",
                 "imageUrl": defaultClientImageUrl
+                
             ]
             
             self.db.collection("users").document(user.uid).setData(data) { error in

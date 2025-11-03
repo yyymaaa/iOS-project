@@ -11,6 +11,7 @@ struct ProfileView: View {
     @State private var message = ""
     @State private var isAnimating = false
     @EnvironmentObject var authViewModel: AuthViewModel
+    @State private var phoneNumber = ""
     
     var body: some View {
         ZStack {
@@ -114,6 +115,8 @@ struct ProfileView: View {
         VStack(spacing: 24) {
             luxuryField(title: "Full Name", text: $fullName, editable: isEditing)
             luxuryField(title: "Email Address", text: $email, editable: false)
+            luxuryField(title: "Phone Number", text: $phoneNumber, editable: isEditing)
+                        .keyboardType(.phonePad)
             luxuryField(title: "Role", text: $role, editable: isEditing)
             
             if isEditing {
@@ -266,6 +269,7 @@ struct ProfileView: View {
                 email = data["email"] as? String ?? ""
                 role = data["role"] as? String ?? ""
                 imageUrl = data["imageUrl"] as? String ?? ""
+                phoneNumber = data["phoneNumber"] as? String ?? ""
             }
         }
     }
@@ -276,7 +280,8 @@ struct ProfileView: View {
         db.collection("users").document(user.uid).updateData([
             "fullName": fullName,
             "role": role,
-            "imageUrl": imageUrl
+            "imageUrl": imageUrl,
+            "phoneNumber": phoneNumber
         ]) { error in
             withAnimation {
                 message = error == nil ? "Profile updated successfully!" : "Failed to update profile"
