@@ -3,14 +3,33 @@ import FirebaseFirestore
 
 struct Order: Identifiable, Codable {
     @DocumentID var id: String?
-    var mealID: String?
-    var mealName: String?
-    var amountPaid: Double
-    var paymentMethod: String?
-    var status: String?
-    var userID: String?
-    var restaurantID: String?
+    var items: [OrderItem]
+    var totalAmount: Double
+    var paymentMethod: String
+    var status: String
+    var customerID: String
+    var customerEmail: String?
+    var customerName: String?
+    var restaurantID: String
     var createdAt: Date
+    var orderNumber: String
+    
+    // this is a computed property for backward compatibility
+    var mealName: String? {
+        return items.first?.mealName
+    }
+    
+    var amountPaid: Double {
+        return totalAmount
+    }
+}
+
+struct OrderItem: Identifiable, Codable {
+    var id = UUID().uuidString
+    var mealID: String
+    var mealName: String
+    var quantity: Int
+    var price: Double
 }
 
 struct Meal: Identifiable, Codable {

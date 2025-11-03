@@ -31,6 +31,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		DF2CB71F2EB8DD1600A9F669 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DF6EA4E22EB3632200C94A63 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
 		DF6EC0EE2E95469300137C74 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = myProject.xcodeproj; path = myProject/myProject.xcodeproj; sourceTree = SOURCE_ROOT; };
 		DF9224A42E9E7A0300750433 /* myProject.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = myProject.xcodeproj; sourceTree = "<group>"; };
@@ -94,6 +95,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DF2CB7282EB8DD1600A9F669 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		DF6EA4F12EB3632200C94A63 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -305,6 +313,10 @@
 			productRefGroup = DF9369522E95354C00005F04 /* Products */;
 			projectDirPath = "";
 			projectReferences = (
+				{
+					ProductGroup = DF2CB7282EB8DD1600A9F669 /* Products */;
+					ProjectRef = DF2CB71F2EB8DD1600A9F669 /* myProject.xcodeproj */;
+				},
 				{
 					ProductGroup = DFAE62912EA7B7B300EF4181 /* Products */;
 					ProjectRef = DFAE628C2EA7B7B300EF4181 /* myProject.xcodeproj */;

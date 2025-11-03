@@ -2,7 +2,7 @@ import SwiftUI
 import FirebaseFirestore
 import FirebaseAuth
 
-// MARK: - Color Palette
+// Color Palette
 
 struct CartView: View {
     @EnvironmentObject var cartManager: CartManager

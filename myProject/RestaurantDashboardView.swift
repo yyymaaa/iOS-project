@@ -58,6 +58,13 @@ struct RestaurantDashboardView: View {
             }
             .navigationTitle(restaurant?.name ?? "Dashboard")
             .navigationBarTitleDisplayMode(.large)
+            .navigationBarItems(trailing:
+                Button(action: logout) {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .foregroundColor(burgundy)
+                }
+            )
+
             .onAppear(perform: loadRestaurantData)
             .alert(isPresented: $showAlert) {
                 Alert(title: Text("Notice"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
@@ -87,26 +94,33 @@ struct RestaurantDashboardView: View {
     private func orderCard(_ order: Order) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(order.mealName ?? "Meal")
-                    .font(.system(size: 18, weight: .semibold, design: .serif))
-                    .foregroundColor(deepBurgundy)
+                // Show first item name + count of additional items
+                if let firstItem = order.items.first {
+                    Text("\(firstItem.mealName)\(order.items.count > 1 ? " + \(order.items.count - 1) more" : "")")
+                        .font(.system(size: 18, weight: .semibold, design: .serif))
+                        .foregroundColor(deepBurgundy)
+                } else {
+                    Text("Order #\(order.orderNumber)")
+                        .font(.system(size: 18, weight: .semibold, design: .serif))
+                        .foregroundColor(deepBurgundy)
+                }
                 Spacer()
-                statusBadge(order.status ?? "Order")
+                statusBadge(order.status)
             }
             
             Divider().background(burgundy.opacity(0.2))
             
             HStack {
-                Label("KSh \(String(format: "%.2f", order.amountPaid))", systemImage: "creditcard")
+                Label("KSh \(String(format: "%.2f", order.totalAmount))", systemImage: "creditcard")
                     .font(.system(size: 14))
                     .foregroundColor(burgundy.opacity(0.8))
                 Spacer()
-                Text(order.id ?? "")
+                Text(order.orderNumber)
                     .font(.system(size: 11, weight: .light, design: .monospaced))
                     .foregroundColor(.gray)
             }
             
-            if order.status != "delivered" {
+            if order.status != "delivered" && order.status != "completed" {
                 HStack(spacing: 12) {
                     if order.status == "pending" {
                         luxuryButton(title: "Mark Ready", color: burgundy) {
@@ -316,7 +330,7 @@ struct RestaurantDashboardView: View {
                         
                         HStack(spacing: 20) {
                             statCard(title: "Total Orders", value: "\(orders.count)", icon: "cart")
-                            statCard(title: "Revenue", value: "KSh \(String(format: "%.0f", orders.reduce(0) { $0 + $1.amountPaid }))", icon: "banknote")
+                            statCard(title: "Revenue", value: "KSh \(String(format: "%.0f", orders.reduce(0) { $0 + $1.totalAmount }))", icon: "banknote")
                         }
                         
                         VStack(alignment: .leading, spacing: 16) {
@@ -491,27 +505,29 @@ struct RestaurantDashboardView: View {
     
     private func loadOrders() {
         guard let rid = restaurant?.id else { return }
-        db.collection("orders").whereField("restaurantID", isEqualTo: rid).getDocuments { snapshot, error in
-            if let error = error {
-                alertMessage = error.localizedDescription
-                showAlert = true
-                return
+        db.collection("orders")
+            .whereField("restaurantID", isEqualTo: rid)
+            .order(by: "createdAt", descending: true)
+            .addSnapshotListener { snapshot, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        self.alertMessage = error.localizedDescription
+                        self.showAlert = true
+                        return
+                    }
+                    
+                    self.orders = snapshot?.documents.compactMap { doc in
+                        do {
+                            return try doc.data(as: Order.self)
+                        } catch {
+                            print("Error decoding order: \(error)")
+                            return nil
+                        }
+                    } ?? []
+                    
+                    self.isLoading = false
+                }
             }
-            orders = snapshot?.documents.compactMap { doc in
-                let data = doc.data()
-                return Order(
-                    id: doc.documentID,
-                    mealID: data["mealID"] as? String ?? "",
-                    mealName: data["mealName"] as? String ?? "Meal",
-                    amountPaid: data["amountPaid"] as? Double ?? 0,
-                    paymentMethod: data["paymentMethod"] as? String ?? "MPesa",
-                    status: data["status"] as? String ?? "pending",
-                    userID: data["userID"] as? String ?? "",
-                    restaurantID: rid,
-                    createdAt: (data["createdAt"] as? Timestamp)?.dateValue() ?? Date()
-                )
-            } ?? []
-        }
     }
     
     private func addMeal() {
@@ -584,7 +600,20 @@ struct RestaurantDashboardView: View {
         let grouped = Dictionary(grouping: orders) { order in
             Calendar.current.startOfDay(for: order.createdAt)
         }
-        return grouped.map { ($0.key, $0.value.reduce(0) { $0 + $1.amountPaid }) }
+        return grouped.map { ($0.key, $0.value.reduce(0) { $0 + $1.totalAmount }) }
             .sorted { $0.0 < $1.0 }
     }
+    private func logout() {
+        do {
+            try Auth.auth().signOut()
+            authVM.userSession = nil
+            authVM.isAuthenticated = false
+            authVM.role = nil
+        } catch {
+            alertMessage = "Failed to log out: \(error.localizedDescription)"
+            showAlert = true
+        }
+    }
+
+
 }

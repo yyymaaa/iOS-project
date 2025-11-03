@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 class CartManager: ObservableObject {
     @Published var cartItems: [CartItem] = []
@@ -42,6 +43,12 @@ class CartManager: ObservableObject {
     func totalAmount() -> Double {
         cartItems.reduce(0) { $0 + ($1.meal.discountPrice * Double($1.quantity)) }
     }
+    
+    func clearCart() {
+            withAnimation(.spring()) {
+                cartItems.removeAll()
+            }
+        }
 }
 
 struct CartItem: Identifiable {

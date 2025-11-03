@@ -8,12 +8,12 @@ struct MyOrdersView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var isAnimating = false
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.luxCream.ignoresSafeArea()
-
+                
                 if isLoading {
                     loadingView
                 } else if let errorMessage = errorMessage {
@@ -199,7 +199,7 @@ struct MyOrdersView: View {
                         .stroke(Color.luxGold.opacity(0.3), lineWidth: 1)
                 )
             }
-
+            
             .opacity(isAnimating ? 1 : 0)
             .offset(y: isAnimating ? 0 : 20)
             .animation(.easeOut(duration: 0.6).delay(0.4), value: isAnimating)
@@ -230,216 +230,313 @@ struct MyOrdersView: View {
             isLoading = false
             return
         }
-
+        
+        print("🔍 Fetching orders for user: \(userID)")
+        
         let db = Firestore.firestore()
         db.collection("orders")
-            .whereField("userID", isEqualTo: userID)
+            .whereField("customerID", isEqualTo: userID)
             .order(by: "createdAt", descending: true)
             .addSnapshotListener { snapshot, error in
-                guard let snapshot = snapshot else {
-                    self.orders = []
+                DispatchQueue.main.async {
+                    if let error = error {
+                        self.errorMessage = "Error fetching orders: \(error.localizedDescription)"
+                        self.isLoading = false
+                        print("❌ Error fetching orders: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    guard let snapshot = snapshot else {
+                        self.orders = []
+                        self.isLoading = false
+                        print("No orders found for user: \(userID)")
+                        return
+                    }
+                    
+                    print("Found \(snapshot.documents.count) documents")
+                    
+                    // Debug: Print raw document data
+                    for document in snapshot.documents {
+                        print("   Order document: \(document.documentID)")
+                        print("   Data: \(document.data())")
+                    }
+                    
+                    self.orders = snapshot.documents.compactMap { doc in
+                        do {
+                            let order = try doc.data(as: Order.self)
+                            print("Successfully decoded order: \(order.orderNumber)")
+                            return order
+                        } catch {
+                            print("Error decoding order \(doc.documentID): \(error)")
+                            print("   Raw data: \(doc.data())")
+                            return nil
+                        }
+                    }
+                    
+                    print("Final orders count: \(self.orders.count)")
                     self.isLoading = false
-                    return
                 }
-
-                self.orders = snapshot.documents.compactMap { doc in
-                    try? doc.data(as: Order.self)
-                }
-                self.isLoading = false
             }
-
     }
-}
 
-// MARK: - Order Card
-struct OrderCard: View {
-    let order: Order
-
-    var body: some View {
-        VStack(spacing: 0) {
-            // Header Section
-            HStack(alignment: .top, spacing: 16) {
-                orderIcon
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(order.mealName ?? "Meal")
-                        .font(.system(size: 19, weight: .semibold, design: .serif))
-                        .foregroundColor(.luxDeepBurgundy)
-                        .lineLimit(2)
+    // MARK: - Updated Order Card with Receipt
+    struct OrderCard: View {
+        let order: Order
+        @State private var showReceipt = false
+        
+        var body: some View {
+            VStack(spacing: 0) {
+                // Header Section
+                HStack(alignment: .top, spacing: 16) {
+                    orderIcon
                     
-                    HStack(spacing: 8) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "calendar")
-                                .font(.system(size: 11))
-                            Text(order.createdAt.formatted(date: .abbreviated, time: .omitted))
-                                .font(.system(size: 13))
-                        }
-                        
-                        Circle()
-                            .fill(Color.gray.opacity(0.4))
-                            .frame(width: 3, height: 3)
-                        
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock")
-                                .font(.system(size: 11))
-                            Text(order.createdAt.formatted(date: .omitted, time: .shortened))
-                                .font(.system(size: 13))
-                        }
-                    }
-                    .foregroundColor(.gray)
-                }
-                
-                Spacer()
-                
-                StatusBadge(status: order.status ?? "unknown")
-            }
-            .padding(20)
-            
-            Divider()
-                .background(Color.luxBurgundy.opacity(0.1))
-                .padding(.horizontal, 20)
-            
-            // Details Section
-            HStack(spacing: 20) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Payment Method")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.gray)
-                    
-                    HStack(spacing: 6) {
-                        Image(systemName: paymentIcon(for: order.paymentMethod ?? "N/A"))
-                            .font(.system(size: 14))
-                            .foregroundColor(.luxBurgundy)
-                        Text(order.paymentMethod ?? "N/A")
-                            .font(.system(size: 14, weight: .medium))
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Order #\(order.orderNumber)")
+                            .font(.system(size: 17, weight: .semibold, design: .serif))
                             .foregroundColor(.luxDeepBurgundy)
+                        
+                        // Show first item name + count of additional items
+                        if let firstItem = order.items.first {
+                            Text("\(firstItem.mealName)\(order.items.count > 1 ? " + \(order.items.count - 1) more" : "")")
+                                .font(.system(size: 15))
+                                .foregroundColor(.gray)
+                                .lineLimit(2)
+                        }
+                        
+                        HStack(spacing: 8) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "calendar")
+                                    .font(.system(size: 11))
+                                Text(order.createdAt.formatted(date: .abbreviated, time: .omitted))
+                                    .font(.system(size: 13))
+                            }
+                            
+                            Circle()
+                                .fill(Color.gray.opacity(0.4))
+                                .frame(width: 3, height: 3)
+                            
+                            HStack(spacing: 4) {
+                                Image(systemName: "clock")
+                                    .font(.system(size: 11))
+                                Text(order.createdAt.formatted(date: .omitted, time: .shortened))
+                                    .font(.system(size: 13))
+                            }
+                        }
+                        .foregroundColor(.gray)
+                    }
+                    
+                    Spacer()
+                    
+                    StatusBadge(status: order.status)
+                }
+                .padding(20)
+                
+                Divider()
+                    .background(Color.luxBurgundy.opacity(0.1))
+                    .padding(.horizontal, 20)
+                
+                // Details Section
+                HStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Payment Method")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.gray)
+                        
+                        HStack(spacing: 6) {
+                            Image(systemName: paymentIcon(for: order.paymentMethod))
+                                .font(.system(size: 14))
+                                .foregroundColor(.luxBurgundy)
+                            Text(order.paymentMethod)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.luxDeepBurgundy)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 6) {
+                        Text("Total Amount")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.gray)
+                        
+                        Text("KSh \(String(format: "%.2f", order.totalAmount))")
+                            .font(.system(size: 18, weight: .bold, design: .serif))
+                            .foregroundColor(.luxBurgundy)
                     }
                 }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 6) {
-                    Text("Total Amount")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.gray)
-                    
-                    Text("KSh \(String(format: "%.2f", order.amountPaid))")
-                        .font(.system(size: 18, weight: .bold, design: .serif))
-                        .foregroundColor(.luxBurgundy)
-                }
-            }
-            .padding(20)
-            .background(
-                LinearGradient(
-                    colors: [.luxCream, .white],
-                    startPoint: .top,
-                    endPoint: .bottom
+                .padding(20)
+                .background(
+                    LinearGradient(
+                        colors: [.luxCream, .white],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
+                
+                // Receipt Button Section
+                HStack {
+                    Button(action: {
+                        showReceipt = true
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "doc.text.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(.luxBurgundy)
+                            
+                            Text("View Receipt")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.luxBurgundy)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.luxBurgundy.opacity(0.1))
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.luxBurgundy.opacity(0.2), lineWidth: 1)
+                        )
+                    }
+                    
+                    Spacer()
+                    
+                    // Quick status indicator
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(statusColor(for: order.status))
+                            .frame(width: 8, height: 8)
+                        
+                        Text(order.status.capitalized)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Color.white)
+            }
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(color: .luxBurgundy.opacity(0.12), radius: 16, x: 0, y: 8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        LinearGradient(
+                            colors: [.luxBurgundy.opacity(0.15), .luxGold.opacity(0.1), .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .sheet(isPresented: $showReceipt) {
+                ReceiptView(order: order)
+            }
+        }
+        
+        private var orderIcon: some View {
+            ZStack {
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(
+                        LinearGradient(
+                            colors: [.luxBurgundy.opacity(0.1), .luxLightBurgundy.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+                
+                Image(systemName: "fork.knife")
+                    .font(.system(size: 24))
+                    .foregroundColor(.luxBurgundy)
+            }
+        }
+        
+        private func paymentIcon(for method: String) -> String {
+            switch method.lowercased() {
+            case "m-pesa", "mpesa":
+                return "phone.fill"
+            case "card", "credit card":
+                return "creditcard.fill"
+            case "cash":
+                return "banknote.fill"
+            default:
+                return "dollarsign.circle.fill"
+            }
+        }
+        
+        private func statusColor(for status: String) -> Color {
+            switch status.lowercased() {
+            case "pending":
+                return .orange
+            case "preparing":
+                return .luxGold
+            case "ready":
+                return .green
+            case "delivered":
+                return .luxBurgundy
+            case "completed":
+                return .luxDeepBurgundy
+            default:
+                return .gray
+            }
+        }
+    }
+    // MARK: - Status Badge
+    struct StatusBadge: View {
+        let status: String
+        
+        var badgeColors: (background: Color, text: Color) {
+            switch status.lowercased() {
+            case "pending":
+                return (.orange.opacity(0.15), .orange)
+            case "preparing":
+                return (.luxGold.opacity(0.15), .luxGold.opacity(0.8))
+            case "ready":
+                return (.green.opacity(0.15), .green)
+            case "delivered":
+                return (.luxBurgundy.opacity(0.15), .luxBurgundy)
+            case "completed":
+                return (.luxGold.opacity(0.2), .luxDeepBurgundy)
+            default:
+                return (.gray.opacity(0.15), .gray)
+            }
+        }
+        
+        var statusIcon: String {
+            switch status.lowercased() {
+            case "pending":
+                return "clock.fill"
+            case "preparing":
+                return "flame.fill"
+            case "ready":
+                return "checkmark.circle.fill"
+            case "delivered":
+                return "checkmark.seal.fill"
+            case "completed":
+                return "star.fill"
+            default:
+                return "questionmark.circle.fill"
+            }
+        }
+        
+        var body: some View {
+            HStack(spacing: 6) {
+                Image(systemName: statusIcon)
+                    .font(.system(size: 11))
+                    .foregroundColor(badgeColors.text)
+                
+                Text(status.capitalized)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(badgeColors.text)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(badgeColors.background)
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(badgeColors.text.opacity(0.2), lineWidth: 1)
             )
         }
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: .luxBurgundy.opacity(0.12), radius: 16, x: 0, y: 8)
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(
-                    LinearGradient(
-                        colors: [.luxBurgundy.opacity(0.15), .luxGold.opacity(0.1), .clear],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
-    }
-    
-    private var orderIcon: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 14)
-                .fill(
-                    LinearGradient(
-                        colors: [.luxBurgundy.opacity(0.1), .luxLightBurgundy.opacity(0.05)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 56, height: 56)
-            
-            Image(systemName: "fork.knife")
-                .font(.system(size: 24))
-                .foregroundColor(.luxBurgundy)
-        }
-    }
-    
-    private func paymentIcon(for method: String) -> String {
-        switch method.lowercased() {
-        case "m-pesa", "mpesa":
-            return "phone.fill"
-        case "card", "credit card":
-            return "creditcard.fill"
-        case "cash":
-            return "banknote.fill"
-        default:
-            return "dollarsign.circle.fill"
-        }
     }
 }
-
-// MARK: - Status Badge
-struct StatusBadge: View {
-    let status: String
-
-    var badgeColors: (background: Color, text: Color) {
-        switch status.lowercased() {
-        case "pending":
-            return (.orange.opacity(0.15), .orange)
-        case "preparing":
-            return (.luxGold.opacity(0.15), .luxGold.opacity(0.8))
-        case "ready":
-            return (.green.opacity(0.15), .green)
-        case "delivered":
-            return (.luxBurgundy.opacity(0.15), .luxBurgundy)
-        case "completed":
-            return (.luxGold.opacity(0.2), .luxDeepBurgundy)
-        default:
-            return (.gray.opacity(0.15), .gray)
-        }
-    }
-    
-    var statusIcon: String {
-        switch status.lowercased() {
-        case "pending":
-            return "clock.fill"
-        case "preparing":
-            return "flame.fill"
-                    case "ready":
-                        return "checkmark.circle.fill"
-                    case "delivered":
-                        return "checkmark.seal.fill"
-                    case "completed":
-                        return "star.fill"
-                    default:
-                        return "questionmark.circle.fill"
-                    }
-                }
-
-                var body: some View {
-                    HStack(spacing: 6) {
-                        Image(systemName: statusIcon)
-                            .font(.system(size: 11))
-                            .foregroundColor(badgeColors.text)
-                        
-                        Text(status.capitalized)
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(badgeColors.text)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(badgeColors.background)
-                    .cornerRadius(10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(badgeColors.text.opacity(0.2), lineWidth: 1)
-                    )
-                }
-            }

@@ -74,6 +74,17 @@ struct HomeView: View {
                 Spacer()
                 
                 HStack(spacing: 16) {
+                    // Orders Button - NEW
+                    NavigationLink(destination: MyOrdersView()) {
+                        Image(systemName: "list.bullet.rectangle.portrait")
+                            .font(.system(size: 20))
+                            .foregroundColor(.luxBurgundy)
+                            .padding(12)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .shadow(color: .luxBurgundy.opacity(0.15), radius: 8, x: 0, y: 4)
+                    }
+                    
                     NavigationLink(destination: CartView()) {
                         ZStack(alignment: .topTrailing) {
                             Image(systemName: "bag")

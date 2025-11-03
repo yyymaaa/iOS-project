@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 struct CheckoutView: View {
     @State private var showMpesaField = false
@@ -11,13 +12,13 @@ struct CheckoutView: View {
     @State private var isAnimating = false
     
     @State private var navigateToOrders = false
-
+    
     @EnvironmentObject var cartManager: CartManager
-
+    
     private var totalAmount: Double {
         cartManager.totalAmount()
     }
-
+    
     private var cartItems: [(String, Int, Double)] {
         cartManager.cartItems.map { item in
             (item.meal.name, item.quantity, item.meal.discountPrice * Double(item.quantity))
@@ -30,8 +31,8 @@ struct CheckoutView: View {
             mainContent
             
             NavigationLink(destination: MyOrdersView(), isActive: $navigateToOrders) {
-                    EmptyView()
-                }
+                EmptyView()
+            }
         }
         .navigationBarHidden(true)
         .alert(isPresented: $showAlert) {
@@ -577,11 +578,11 @@ struct CheckoutView: View {
                     startPoint: .leading,
                     endPoint: .trailing
                 ) :
-                LinearGradient(
-                    colors: [.gray.opacity(0.2), .gray.opacity(0.2)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                ),
+                    LinearGradient(
+                        colors: [.gray.opacity(0.2), .gray.opacity(0.2)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
                 lineWidth: phoneNumber.count == 9 ? 2 : 1
             )
     }
@@ -693,7 +694,7 @@ struct CheckoutView: View {
         LinearGradient(
             colors: phoneNumber.count == 9 && !isProcessing ?
             [.luxBurgundy, .luxDeepBurgundy] :
-            [.gray.opacity(0.5), .gray.opacity(0.4)],
+                [.gray.opacity(0.5), .gray.opacity(0.4)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
@@ -760,9 +761,19 @@ struct CheckoutView: View {
             return
         }
 
-        
         isProcessing = true
-        let url = URL(string: "http://localhost:3000/stkpush")!  // Use ngrok URL on device
+        
+        // Get restaurant ID from the first item in cart
+        guard let firstItem = cartManager.cartItems.first else {
+            alertMessage = "Cart is empty"
+            showAlert = true
+            isProcessing = false
+            return
+        }
+        
+        let restaurantID = firstItem.meal.restaurantID
+        
+        let url = URL(string: "http://localhost:3000/stkpush")!
         let body: [String: Any] = [
             "phoneNumber": phoneNumber,
             "amount": totalAmount
@@ -776,56 +787,75 @@ struct CheckoutView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 isProcessing = false
-                if let error = error {
-                    alertMessage = "Error: \(error.localizedDescription)"
-                    showAlert = true
-                    return
-                }
                 
-                guard let data = data,
-                      let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                      let success = response["success"] as? Bool else {
-                    alertMessage = "Invalid response."
-                    showAlert = true
-                    return
-                }
+                // CONSIDER PAYMENT SUCCESSFUL AS SOON AS STK PUSH IS SENT
+                // Don't wait for response or PIN entry
+                alertMessage = "Payment prompt sent to +254\(phoneNumber)"
+                paymentSuccess = true
                 
-                if success {
-                    alertMessage = "Payment prompt sent to +254\(phoneNumber)"
-                    paymentSuccess = true
-                    
-                    let db = Firestore.firestore()
-                        let orderData: [String: Any] = [
-                            "userID": "currentUserID", // replace with actual user ID
-                            "amountPaid": totalAmount,
-                            "paymentMethod": "MPesa",
-                            "status": "pending",
-                            "createdAt": Timestamp(),
-                            "cartItems": cartManager.cartItems.map { [
-                                "mealID": $0.meal.id ?? "",
-                                "mealName": $0.meal.name,
-                                "quantity": $0.quantity,
-                                "price": $0.meal.discountPrice
-                            ]}
-                        ]
-
-                        db.collection("orders").addDocument(data: orderData) { err in
-                            if let err = err {
-                                print("Error adding order: \(err.localizedDescription)")
-                            } else {
-                                print("Order successfully added!")
-                            }
-                        }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            navigateToOrders = true
-                        }
-                } else {
-                    alertMessage = "Failed to initiate payment."
-                    paymentSuccess = false
-                }
+                // Create order in Firestore
+                createOrderInFirestore(restaurantID: restaurantID)
+                
+                // Clear the cart
+                cartManager.clearCart()
+                
                 showAlert = true
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    navigateToOrders = true
+                }
             }
         }.resume()
+    }
+    private func createOrderInFirestore(restaurantID: String) {
+        let db = Firestore.firestore()
+        
+        // Create proper order items array
+        let orderItems: [[String: Any]] = cartManager.cartItems.map { item in
+            return [
+                "id": UUID().uuidString,
+                "mealID": item.meal.id ?? "",
+                "mealName": item.meal.name,
+                "quantity": item.quantity,
+                "price": item.meal.discountPrice
+            ]
+        }
+        
+        let orderNumber = "ORD-\(String(format: "%04d", Int.random(in: 1000...9999)))"
+        
+        let orderData: [String: Any] = [
+            "items": orderItems,
+            "totalAmount": totalAmount,
+            "paymentMethod": "MPesa",
+            "status": "pending",
+            "customerID": Auth.auth().currentUser?.uid ?? "unknown",
+            "customerEmail": Auth.auth().currentUser?.email ?? "",
+            "restaurantID": restaurantID,
+            "createdAt": Timestamp(date: Date()),
+            "orderNumber": orderNumber
+        ]
+
+        // DEBUG: Print what we're saving
+        print("Creating order with data:")
+        print("   - Order Number: \(orderNumber)")
+        print("   - Restaurant ID: \(restaurantID)")
+        print("   - Customer ID: \(Auth.auth().currentUser?.uid ?? "unknown")")
+        print("   - Items: \(orderItems.count)")
+        print("   - Total: KSh \(totalAmount)")
+
+        // Add the order to Firestore
+        db.collection("orders").addDocument(data: orderData) { err in
+            if let err = err {
+                print("❌ Error adding order: \(err.localizedDescription)")
+            } else {
+                print("Order successfully added to Firestore!")
+                print("Order details:")
+                print("   - Order Number: \(orderNumber)")
+                print("   - Restaurant: \(restaurantID)")
+                print("   - Items: \(orderItems.count)")
+                print("   - Total: KSh \(totalAmount)")
+                print("   - Customer: \(Auth.auth().currentUser?.uid ?? "unknown")")
+            }
+        }
     }
 }

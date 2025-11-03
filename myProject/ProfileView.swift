@@ -168,52 +168,88 @@ struct ProfileView: View {
     }
     
     private var actionsSection: some View {
-        VStack(spacing: 16) {
-            Button(action: {
-                if isEditing { saveChanges() }
-                withAnimation(.spring(response: 0.3)) {
-                    isEditing.toggle()
+        VStack(spacing: 20) {
+            NavigationLink(destination: MyOrdersView()) {
+                HStack(spacing: 16) {
+                    Image(systemName: "doc.text.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.luxBurgundy)
+                        .frame(width: 24)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("My Receipts")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.luxDeepBurgundy)
+                        
+                        Text("View your order history and receipts")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.luxBurgundy.opacity(0.6))
                 }
-            }) {
-                HStack(spacing: 12) {
-                    Image(systemName: isEditing ? "checkmark.circle.fill" : "pencil.circle.fill")
-                        .font(.system(size: 18))
-                    Text(isEditing ? "Save Changes" : "Edit Profile")
-                        .font(.system(size: 17, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(
-                    LinearGradient(
-                        colors: [.luxBurgundy, .luxDeepBurgundy],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .cornerRadius(16)
-                .shadow(color: .luxBurgundy.opacity(0.4), radius: 12, x: 0, y: 6)
-            }
-            
-            Button(action: {
-                authViewModel.logout()
-            }) {
-                HStack(spacing: 12) {
-                    Image(systemName: "arrow.right.square.fill")
-                        .font(.system(size: 18))
-                    Text("Sign Out")
-                        .font(.system(size: 17, weight: .semibold))
-                }
-                .foregroundColor(.luxDeepBurgundy)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
+                .padding(20)
                 .background(Color.white)
                 .cornerRadius(16)
+                .shadow(color: .luxBurgundy.opacity(0.08), radius: 12, x: 0, y: 4)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.luxBurgundy.opacity(0.2), lineWidth: 1.5)
+                        .stroke(Color.luxBurgundy.opacity(0.1), lineWidth: 1)
                 )
-                .shadow(color: .luxBurgundy.opacity(0.08), radius: 12, x: 0, y: 4)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            VStack(spacing: 16) {
+                Button(action: {
+                    if isEditing { saveChanges() }
+                    withAnimation(.spring(response: 0.3)) {
+                        isEditing.toggle()
+                    }
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: isEditing ? "checkmark.circle.fill" : "pencil.circle.fill")
+                            .font(.system(size: 18))
+                        Text(isEditing ? "Save Changes" : "Edit Profile")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(
+                        LinearGradient(
+                            colors: [.luxBurgundy, .luxDeepBurgundy],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(16)
+                    .shadow(color: .luxBurgundy.opacity(0.4), radius: 12, x: 0, y: 6)
+                }
+                
+                Button(action: {
+                    authViewModel.logout()
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "arrow.right.square.fill")
+                            .font(.system(size: 18))
+                        Text("Sign Out")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                    .foregroundColor(.luxDeepBurgundy)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.luxBurgundy.opacity(0.2), lineWidth: 1.5)
+                    )
+                    .shadow(color: .luxBurgundy.opacity(0.08), radius: 12, x: 0, y: 4)
+                }
             }
         }
         .opacity(isAnimating ? 1 : 0)
