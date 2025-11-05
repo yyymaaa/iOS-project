@@ -760,7 +760,7 @@ struct CheckoutView: View {
             showAlert = true
             return
         }
-
+        
         isProcessing = true
         
         // Get restaurant ID from the first item in cart
@@ -773,10 +773,15 @@ struct CheckoutView: View {
         
         let restaurantID = firstItem.meal.restaurantID
         
+        // Calculate amount directly from cart items
+        let paymentAmount = cartManager.cartItems.reduce(0.0) { total, item in
+            total + (item.meal.discountPrice * Double(item.quantity))
+        }
+        
         let url = URL(string: "http://localhost:3000/stkpush")!
         let body: [String: Any] = [
             "phoneNumber": phoneNumber,
-            "amount": totalAmount
+            "amount": paymentAmount
         ]
         
         var request = URLRequest(url: url)
@@ -788,31 +793,35 @@ struct CheckoutView: View {
             DispatchQueue.main.async {
                 isProcessing = false
                 
-                // CONSIDER PAYMENT SUCCESSFUL AS SOON AS STK PUSH IS SENT
-                // Don't wait for response or PIN entry
                 alertMessage = "Payment prompt sent to +254\(phoneNumber)"
                 paymentSuccess = true
                 
-                // Create order in Firestore
-                createOrderInFirestore(restaurantID: restaurantID)
-                
-                // Clear the cart
-                cartManager.clearCart()
-                
-                showAlert = true
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    navigateToOrders = true
+                // Create order in Firestore - and ONLY clear cart after order is successfully created
+                self.createOrderInFirestore(restaurantID: restaurantID) {
+                    // Clear the cart only after order is successfully saved
+                    self.cartManager.clearCart()
+                    
+                    self.showAlert = true
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        self.navigateToOrders = true
+                    }
                 }
             }
         }.resume()
     }
-    private func createOrderInFirestore(restaurantID: String) {
+    
+    private func createOrderInFirestore(restaurantID: String, completion: @escaping () -> Void) {
         let db = Firestore.firestore()
+        
+        // Calculating total amount DIRECTLY from cart items to avoid timing issues
+        let calculatedTotalAmount = cartManager.cartItems.reduce(0.0) { total, item in
+            total + (item.meal.discountPrice * Double(item.quantity))
+        }
         
         // Create proper order items array
         let orderItems: [[String: Any]] = cartManager.cartItems.map { item in
-            return [
+            [
                 "id": UUID().uuidString,
                 "mealID": item.meal.id ?? "",
                 "mealName": item.meal.name,
@@ -823,11 +832,17 @@ struct CheckoutView: View {
         
         let orderNumber = "ORD-\(String(format: "%04d", Int.random(in: 1000...9999)))"
         
-        // Fetch customer details FIRST, then create order
+        // Fetch customer details
         guard let userID = Auth.auth().currentUser?.uid else {
             print("No user ID found")
+            completion()
             return
         }
+
+        print("=== ORDER CREATION DEBUG ===")
+        print("Cart items count: \(cartManager.cartItems.count)")
+        print("Calculated totalAmount: \(calculatedTotalAmount)")
+        print("===============================")
         
         let userDB = Firestore.firestore()
         userDB.collection("users").document(userID).getDocument { userDoc, error in
@@ -844,7 +859,7 @@ struct CheckoutView: View {
             
             let orderData: [String: Any] = [
                 "items": orderItems,
-                "totalAmount": totalAmount,
+                "totalAmount": calculatedTotalAmount,
                 "paymentMethod": "MPesa",
                 "status": "pending",
                 "customerID": userID,
@@ -856,24 +871,58 @@ struct CheckoutView: View {
                 "orderNumber": orderNumber
             ]
 
-            print("🛒 Creating order with customer info:")
-            print("   - Customer Name: \(customerName)")
-            print("   - Customer Phone: \(customerPhone)")
-            print("   - Order Number: \(orderNumber)")
-
-            // Add the order to Firestore ONLY ONCE
+            // Add the order to Firestore
             db.collection("orders").addDocument(data: orderData) { err in
                 if let err = err {
                     print("Error adding order: \(err.localizedDescription)")
                 } else {
-                    print("Order successfully added with customer info!")
-                    print("Order details:")
+                    print("Order successfully created!")
+                    print("   - Order Number: \(orderNumber)")
+                    print("   - Total Amount: KSh \(calculatedTotalAmount)")
                     print("   - Customer: \(customerName)")
                     print("   - Phone: \(customerPhone)")
-                    print("   - Items: \(orderItems.count)")
-                    print("   - Total: KSh \(totalAmount)")
+                    
+                    // Verify the order was saved with correct amount
+                    self.verifyOrderAmount(orderNumber: orderNumber)
                 }
+                
+                // Call completion handler regardless of success/failure
+                completion()
             }
         }
     }
-}
+    private func verifyOrderAmount(orderNumber: String) {
+        let db = Firestore.firestore()
+        
+        db.collection("orders")
+            .whereField("orderNumber", isEqualTo: orderNumber)
+            .getDocuments { snapshot, error in
+                if let document = snapshot?.documents.first {
+                    let data = document.data()
+                    let savedAmount = data["totalAmount"] as? Double ?? 0.0
+                    print("VERIFICATION - Order saved with amount: KSh \(savedAmount)")
+                    
+                    if savedAmount == 0.0 {
+                        print("PROBLEM: Order saved with KSh 0!")
+                        print("   Document data: \(data)")
+                    } else {
+                        print("SUCCESS: Order saved with correct amount!")
+                    }
+                }
+            }
+    }
+    
+    private func debugOrderData() {
+        print("=== DEBUG CART DATA ===")
+        print("Cart items count: \(cartManager.cartItems.count)")
+        var calculatedTotal: Double = 0
+        cartManager.cartItems.forEach { item in
+            let itemTotal = item.meal.discountPrice * Double(item.quantity)
+            calculatedTotal += itemTotal
+            print("   - \(item.meal.name): \(item.quantity) x KSh \(item.meal.discountPrice) = KSh \(itemTotal)")
+        }
+        print("Cart Manager Total: KSh \(totalAmount)")
+        print("Calculated Total: KSh \(calculatedTotal)")
+        print("===========================")
+    }
+    }

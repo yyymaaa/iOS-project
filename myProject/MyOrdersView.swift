@@ -8,7 +8,17 @@ struct MyOrdersView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var isAnimating = false
-    
+    @State private var selectedStatusFilter = "All"
+    private let statusFilters = ["All", "pending", "ready", "delivered"]
+
+    private var filteredOrders: [Order] {
+        if selectedStatusFilter == "All" {
+            return orders
+        } else {
+            return orders.filter { $0.status.lowercased() == selectedStatusFilter.lowercased() }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -18,7 +28,7 @@ struct MyOrdersView: View {
                     loadingView
                 } else if let errorMessage = errorMessage {
                     errorView(message: errorMessage)
-                } else if orders.isEmpty {
+                } else if filteredOrders.isEmpty {
                     emptyStateView
                 } else {
                     ordersListView
@@ -46,8 +56,8 @@ struct MyOrdersView: View {
                         .font(.system(size: 34, weight: .semibold, design: .serif))
                         .foregroundColor(.luxDeepBurgundy)
                     
-                    if !orders.isEmpty {
-                        Text("\(orders.count) order\(orders.count == 1 ? "" : "s")")
+                    if !filteredOrders.isEmpty {
+                        Text("\(filteredOrders.count) order\(filteredOrders.count == 1 ? "" : "s")")
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
                     }
@@ -59,6 +69,33 @@ struct MyOrdersView: View {
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)
+            
+            // Status Filter Picker
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(statusFilters, id: \.self) { status in
+                        Button(action: {
+                            selectedStatusFilter = status
+                        }) {
+                            Text(status.capitalized)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(selectedStatusFilter == status ? .white : .luxBurgundy)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(
+                                    selectedStatusFilter == status ?
+                                    Color.luxBurgundy : Color.luxBurgundy.opacity(0.1)
+                                )
+                                .cornerRadius(20)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.luxBurgundy.opacity(0.3), lineWidth: 1)
+                                )
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
             
             Rectangle()
                 .fill(
@@ -211,7 +248,7 @@ struct MyOrdersView: View {
     private var ordersListView: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack(spacing: 20) {
-                ForEach(Array(orders.enumerated()), id: \.element.id) { index, order in
+                ForEach(Array(filteredOrders.enumerated()), id: \.element.id) { index, order in
                     OrderCard(order: order)
                         .opacity(isAnimating ? 1 : 0)
                         .offset(y: isAnimating ? 0 : 30)
@@ -242,7 +279,7 @@ struct MyOrdersView: View {
                     if let error = error {
                         self.errorMessage = "Error fetching orders: \(error.localizedDescription)"
                         self.isLoading = false
-                        print("❌ Error fetching orders: \(error.localizedDescription)")
+                        print("Error fetching orders: \(error.localizedDescription)")
                         return
                     }
                     

@@ -73,54 +73,32 @@ struct HomeView: View {
                 
                 Spacer()
                 
-                HStack(spacing: 16) {
-                    // Orders Button - NEW
-                    NavigationLink(destination: MyOrdersView()) {
-                        Image(systemName: "list.bullet.rectangle.portrait")
-                            .font(.system(size: 20))
-                            .foregroundColor(.luxBurgundy)
-                            .padding(12)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .shadow(color: .luxBurgundy.opacity(0.15), radius: 8, x: 0, y: 4)
-                    }
-                    
-                    NavigationLink(destination: CartView()) {
-                        ZStack(alignment: .topTrailing) {
-                            Image(systemName: "bag")
-                                .font(.system(size: 22))
-                                .foregroundColor(.luxBurgundy)
-                                .padding(12)
-                                .background(Color.white)
-                                .clipShape(Circle())
-                                .shadow(color: .luxBurgundy.opacity(0.15), radius: 8, x: 0, y: 4)
-                            
-                            if !cartManager.cartItems.isEmpty {
-                                Circle()
-                                    .fill(Color.luxGold)
-                                    .frame(width: 18, height: 18)
-                                    .overlay(
-                                        Text("\(cartManager.cartItems.count)")
-                                            .font(.system(size: 10, weight: .bold))
-                                            .foregroundColor(.white)
-                                    )
-                                    .offset(x: 4, y: -4)
-                            }
-                        }
-                    }
-                    
-                    NavigationLink(destination: ProfileView()) {
-                        Image(systemName: "person.circle")
+                Spacer()
+
+                // Cart badge only (no navigation buttons since we have tab bar)
+                if !cartManager.cartItems.isEmpty {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "bag")
                             .font(.system(size: 22))
                             .foregroundColor(.luxBurgundy)
                             .padding(12)
                             .background(Color.white)
                             .clipShape(Circle())
                             .shadow(color: .luxBurgundy.opacity(0.15), radius: 8, x: 0, y: 4)
+                        
+                        Circle()
+                            .fill(Color.luxGold)
+                            .frame(width: 18, height: 18)
+                            .overlay(
+                                Text("\(cartManager.cartItems.count)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                            )
+                            .offset(x: 4, y: -4)
                     }
-                }
-                .opacity(isAnimating ? 1 : 0)
-                .offset(x: isAnimating ? 0 : 20)
+                    .opacity(isAnimating ? 1 : 0)
+                    .offset(x: isAnimating ? 0 : 20)
+                    }
             }
             .padding(.horizontal, 24)
             .padding(.top, 20)
@@ -315,5 +293,51 @@ struct HomeView: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(Color.luxBurgundy.opacity(0.1), lineWidth: 1)
         )
+    }
+    
+    
+}
+
+
+// MARK: - Main Tab Bar View
+struct MainTabView: View {
+    @StateObject private var cartManager = CartManager()
+    @State private var selectedTab = 0
+    
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            HomeView()
+                .environmentObject(cartManager)
+                .tabItem {
+                    Image(systemName: "house.fill")
+                    Text("Home")
+                }
+                .tag(0)
+            
+            MyOrdersView()
+                .environmentObject(cartManager)
+                .tabItem {
+                    Image(systemName: "list.bullet.rectangle.portrait")
+                    Text("Orders")
+                }
+                .tag(1)
+            
+            CartView()
+                .environmentObject(cartManager)
+                .tabItem {
+                    Image(systemName: "bag.fill")
+                    Text("Cart")
+                }
+                .tag(2)
+            
+            ProfileView()
+                .environmentObject(cartManager)
+                .tabItem {
+                    Image(systemName: "person.fill")
+                    Text("Profile")
+                }
+                .tag(3)
+        }
+        .accentColor(.luxBurgundy)
     }
 }

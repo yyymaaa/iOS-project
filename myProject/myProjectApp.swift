@@ -22,9 +22,8 @@ struct myProjectApp: App {
                     RestaurantDashboardView()
                         .environmentObject(authViewModel)
                 } else {
-                    HomeView()
+                    MainTabView()
                         .environmentObject(authViewModel)
-                        .environmentObject(cartManager)
                 }
             } else {
                 LoginView()

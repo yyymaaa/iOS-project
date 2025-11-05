@@ -21,6 +21,9 @@ struct RestaurantDashboardView: View {
     @State private var isLoading = true
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var selectedStatusFilter = "All"
+    
+    private let statusFilters = ["All", "pending", "delivered"]
     
     @EnvironmentObject var authVM: AuthViewModel
     private var db = Firestore.firestore()
@@ -31,6 +34,14 @@ struct RestaurantDashboardView: View {
     private let lightBurgundy = Color(red: 0.7, green: 0.2, blue: 0.2)
     private let cream = Color(red: 0.98, green: 0.97, blue: 0.95)
     private let gold = Color(red: 0.85, green: 0.65, blue: 0.13)
+    
+    private var filteredOrders: [Order] {
+        if selectedStatusFilter == "All" {
+            return orders
+        } else {
+            return orders.filter { $0.status.lowercased() == selectedStatusFilter.lowercased() }
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -76,12 +87,39 @@ struct RestaurantDashboardView: View {
     private var ordersTab: some View {
         ScrollView {
             VStack(spacing: 20) {
-                if orders.isEmpty {
-                    emptyStateView(icon: "cart", message: "No orders yet")
+                // Status Filter Picker
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(statusFilters, id: \.self) { status in
+                            Button(action: {
+                                selectedStatusFilter = status
+                            }) {
+                                Text(status.capitalized)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(selectedStatusFilter == status ? .white : burgundy)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        selectedStatusFilter == status ?
+                                        burgundy : burgundy.opacity(0.1)
+                                    )
+                                    .cornerRadius(20)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(burgundy.opacity(0.3), lineWidth: 1)
+                                    )
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
+                
+                if filteredOrders.isEmpty {
+                    emptyStateView(icon: "cart", message: selectedStatusFilter == "All" ? "No orders yet" : "No \(selectedStatusFilter) orders")
                 } else {
                     LazyVStack(spacing: 16) {
-                        ForEach(orders) { order in
-                            orderCard(order)
+                        ForEach(filteredOrders) { order in
+                            self.orderCard(order)
                         }
                     }
                     .padding()
@@ -110,7 +148,7 @@ struct RestaurantDashboardView: View {
             
             Divider().background(burgundy.opacity(0.2))
             
-            // Customer Information - NEW SECTION
+            // Customer Information
             VStack(alignment: .leading, spacing: 6) {
                 Text("Customer Information")
                     .font(.system(size: 12, weight: .semibold))
@@ -176,6 +214,7 @@ struct RestaurantDashboardView: View {
         .shadow(color: burgundy.opacity(0.08), radius: 12, x: 0, y: 4)
     }
     
+    
     private func statusBadge(_ status: String) -> some View {
         Text(status.uppercased())
             .font(.system(size: 10, weight: .bold, design: .rounded))
@@ -188,7 +227,6 @@ struct RestaurantDashboardView: View {
             )
             .cornerRadius(8)
     }
-    
     // MARK: - Menu Tab
     private var menuTab: some View {
         ScrollView {
@@ -364,8 +402,8 @@ struct RestaurantDashboardView: View {
                             .foregroundColor(deepBurgundy)
                         
                         HStack(spacing: 20) {
-                            statCard(title: "Total Orders", value: "\(orders.count)", icon: "cart")
-                            statCard(title: "Revenue", value: "KSh \(String(format: "%.0f", orders.reduce(0) { $0 + $1.totalAmount }))", icon: "banknote")
+                            statCard(title: "Total Orders", value: "\(filteredOrders.count)", icon: "cart")
+                            statCard(title: "Revenue", value: "KSh \(String(format: "%.0f", filteredOrders.reduce(0) { $0 + $1.totalAmount }))", icon: "banknote")
                         }
                         
                         VStack(alignment: .leading, spacing: 16) {
@@ -565,15 +603,35 @@ struct RestaurantDashboardView: View {
                         return
                     }
                     
+                    // Debug: Print raw data before decoding
+                    print("Loading orders for restaurant: \(rid)")
+                    
                     self.orders = snapshot?.documents.compactMap { doc in
+                        let data = doc.data()
+                        
+                        // Debug print the raw data
+                        print("Order Document ID: \(doc.documentID)")
+                        print("   Raw data: \(data)")
+                        
+                        // Check if totalAmount exists and what type it is
+                        if let totalAmount = data["totalAmount"] {
+                            print("   totalAmount field: \(totalAmount) (type: \(type(of: totalAmount)))")
+                        } else {
+                            print("totalAmount field is MISSING!")
+                        }
+                        
                         do {
-                            return try doc.data(as: Order.self)
+                            let order = try doc.data(as: Order.self)
+                            print("Successfully decoded order: \(order.orderNumber) - KSh \(order.totalAmount)")
+                            return order
                         } catch {
                             print("Error decoding order: \(error)")
+                            print("   Data that failed: \(data)")
                             return nil
                         }
                     } ?? []
                     
+                    print("Final orders count: \(self.orders.count)")
                     self.isLoading = false
                 }
             }
@@ -646,7 +704,7 @@ struct RestaurantDashboardView: View {
     }
     
     private func groupOrdersByDate() -> [(Date, Double)] {
-        let grouped = Dictionary(grouping: orders) { order in
+        let grouped = Dictionary(grouping: filteredOrders) { order in
             Calendar.current.startOfDay(for: order.createdAt)
         }
         return grouped.map { ($0.key, $0.value.reduce(0) { $0 + $1.totalAmount }) }
